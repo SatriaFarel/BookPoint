@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { DUMMY_ORDERS } from '../../constants';
@@ -13,6 +12,8 @@ interface BuyerInvoiceProps {
 const BuyerInvoice: React.FC<BuyerInvoiceProps> = ({ user, onLogout }) => {
   const { id } = useParams<{ id: string }>();
   const order = DUMMY_ORDERS.find(o => o.id === id) || DUMMY_ORDERS[0];
+
+  
 
   const handlePrint = () => {
     window.print();

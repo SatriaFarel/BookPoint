@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import { Link } from 'react-router-dom';
 import { DUMMY_ORDERS } from '../../constants';
 import { User, OrderStatus } from '../../types';
@@ -12,6 +12,37 @@ interface BuyerTransactionsProps {
 }
 
 const BuyerTransactions: React.FC<BuyerTransactionsProps> = ({ user, onLogout }) => {
+
+  const API = 'http://127.0.0.1:8000/api/orders';
+  
+  const [order, setOrders] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [alert, setAlert] = useState(true);
+
+
+  /* ================= ALERT ================= */
+  const showAlert = (type: 'success' | 'error', message: string) => {
+    setAlert({ type, message });
+    setTimeout(() => setAlert(null), 3000);
+  };
+
+  /* ================= FETCH ================= */
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch(API);
+        const data = await res.json();
+        setOrders(data);
+      } catch {
+        showAlert('error', 'Gagal mengambil produk');
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    useEffect(() => {
+      fetchProducts();
+    }, []);
+
   return (
     <div className="min-h-screen bg-slate-50">
       <nav className="bg-white border-b border-slate-200 sticky top-0 z-20 px-4 py-4">

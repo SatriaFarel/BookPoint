@@ -2,7 +2,7 @@
 export enum UserRole {
   SUPER_ADMIN = 'SUPER_ADMIN',
   SELLER = 'SELLER',
-  BUYER = 'BUYER'
+  CUSTOMER = 'CUSTOMER'
 }
 
 export enum UserStatus {
@@ -25,10 +25,44 @@ export interface User {
   status?: UserStatus;
 }
 
+export interface Seller {
+  id: number;
+  nik: string;
+  name: string;
+  email: string;
+  alamat: string;
+  is_active: boolean;
+  is_online: boolean;
+}
+
+export interface Customer {
+  id: number;
+  nik: string;
+  name: string;
+  email: string;
+  alamat: string;
+  password?: string; // jangan ditampilin asli
+}
+
 export interface Category {
   id: string;
   name: string;
 }
+
+export interface Product {
+  id: number;
+  seller_id: number;
+  category_id: number;
+  image: string | null;
+  name: string;
+  stock: number;
+  price: number;
+  discount_percent: number | null;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 
 export interface Book {
   id: string;

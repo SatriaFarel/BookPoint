@@ -6,8 +6,8 @@ export const DUMMY_USERS: User[] = [
   { id: '1', name: 'Admin Utama', email: 'admin@lumina.com', role: UserRole.SUPER_ADMIN, status: UserStatus.ONLINE },
   { id: '2', name: 'Gramedia Official', email: 'gramedia@seller.com', role: UserRole.SELLER, status: UserStatus.ONLINE },
   { id: '3', name: 'Buku Kita', email: 'bukukita@seller.com', role: UserRole.SELLER, status: UserStatus.OFFLINE },
-  { id: '4', name: 'John Doe', email: 'john@buyer.com', role: UserRole.BUYER },
-  { id: '5', name: 'Jane Smith', email: 'jane@buyer.com', role: UserRole.BUYER },
+  { id: '4', name: 'John Doe', email: 'john@buyer.com', role: UserRole.CUSTOMER },
+  { id: '5', name: 'Jane Smith', email: 'jane@buyer.com', role: UserRole.CUSTOMER },
 ];
 
 export const DUMMY_CATEGORIES: Category[] = [

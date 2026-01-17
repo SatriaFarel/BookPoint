@@ -1,6 +1,6 @@
 
 {
-  "name": "Lumina BookStore Dashboard",
+  "name": "BookPoint",
   "description": "A comprehensive bookstore management system with dedicated dashboards for Super Admins, Sellers, and a storefront for Buyers. Built with React, Tailwind CSS, and Recharts.",
   "requestFramePermissions": [
     "camera"

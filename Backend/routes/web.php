@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\SellerController;
+use App\Http\Controllers\CustumerController;
+use App\Http\Controllers\CategoriesController;
 
 
 Route::get('/', function () {
@@ -18,9 +20,3 @@ Route::get('/', function () {
 // Route::post('/chat', [MessageController::class, 'store']);
 // Route::post('/chat/delete/{id}', [MessageController::class, 'destroy']);
 
-Route::prefix('api/seller')->group(function () {
-    Route::get('/', [SellerController::class, 'index']);
-    Route::post('/', [SellerController::class, 'store']);
-    Route::put('/{id}', [SellerController::class, 'update']);
-    Route::delete('/{id}', [SellerController::class, 'destroy']);
-});

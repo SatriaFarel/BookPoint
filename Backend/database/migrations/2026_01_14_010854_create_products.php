@@ -15,11 +15,11 @@ return new class extends Migration
             $table->id();
             $table->foreignId('seller_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('category_id')->constrained()->cascadeOnDelete();
+            $table->string('image')->nullable();
             $table->string('name');
             $table->integer('stock');
             $table->decimal('price', 12, 2);
-            $table->decimal('capital', 12, 2); // modal
-            $table->decimal('margin', 12, 2);
+            $table->integer('discount_percent')->nullable();
             $table->text('description')->nullable();
             $table->timestamps();
         });

@@ -6,19 +6,17 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
-class SellerController extends Controller
+class CustumerController extends Controller
 {
-    // READ ALL SELLER
+    // READ ALL CUSTOMER
     public function index()
     {
         return response()->json(
-            User::where('role_id', 2)
-                ->select('id', 'nik', 'name', 'email', 'alamat', 'password', 'is_active', 'is_online')
-                ->get()
+            User::where('role_id', 3)->get()
         );
     }
 
-    // CREATE SELLER
+    // CREATE CUSTOMER
     public function store(Request $request)
     {
         $request->validate([
@@ -29,45 +27,39 @@ class SellerController extends Controller
             'alamat'   => 'required|string',
         ]);
 
-        $seller = User::create([
-            'role_id'   => 2,
+        $customer = User::create([
+            'role_id'   => 3, // ROLE CUSTOMER
             'nik'       => $request->nik,
             'name'      => $request->name,
             'email'     => $request->email,
             'password'  => Hash::make($request->password),
             'alamat'    => $request->alamat,
             'is_active' => true,
-            'is_online' => false,
+            'is_online' => false
         ]);
 
-        return response()->json($seller, 201);
+        return response()->json($customer);
     }
 
-    // UPDATE SELLER
+    // UPDATE CUSTOMER
     public function update(Request $request, $id)
     {
-        $seller = User::where('role_id', 2)->findOrFail($id);
+        $customer = User::where('role_id', 3)->findOrFail($id);
 
-        $request->validate([
-            'name'   => 'required|string',
-            'email'  => 'required|email|unique:users,email,' . $id,
-            'alamat' => 'required|string',
-        ]);
-
-        $seller->update([
-            'name'   => $request->name,
-            'email'  => $request->email,
+        $customer->update([
+            'name' => $request->name,
+            'email' => $request->email,
             'alamat' => $request->alamat,
+            
         ]);
 
-        return response()->json($seller);
+        return response()->json(['success' => true]);
     }
 
-    // DELETE SELLER
+    // DELETE CUSTOMER
     public function destroy($id)
     {
-        User::where('role_id', 2)->findOrFail($id)->delete();
-
+        User::where('role_id', 3)->findOrFail($id)->delete();
         return response()->json(['success' => true]);
     }
 }

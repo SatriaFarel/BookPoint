@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('seller_id')->constrained('users');
+            $table->foreignId('customer_id')->constrained('users');
+            $table->integer('total_price');
+            $table->enum('status', ['diperiksa','disetujui', 'ditolak']);
+            $table->string('bukti_pembayaran')->nullable();
             $table->timestamps();
         });
     }

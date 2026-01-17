@@ -1,13 +1,56 @@
 
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import { DUMMY_ORDERS } from '../../constants';
 import { OrderStatus } from '../../types';
 import { Badge } from '../../components/Badge';
 import { Button } from '../../components/Button';
 
 const SellerOrders: React.FC = () => {
+
+  const API = 'http://127.0.0.1:8000/api/orders';
+
+  const [order, setOrders] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [alert, setAlert] = useState(true);
+
+
+  /* ================= ALERT ================= */
+  const showAlert = (type: 'success' | 'error', message: string) => {
+    setAlert({ type, message });
+    setTimeout(() => setAlert(null), 3000);
+  };
+
+  /* ================= FETCH ================= */
+  const fetchProducts = async () => {
+    try {
+      const res = await fetch(API);
+      const data = await res.json();
+      setOrders(data);
+    } catch {
+      showAlert('error', 'Gagal mengambil produk');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
   return (
     <div className="space-y-6">
+
+      {/* ===== ALERT ===== */}
+      {alert && (
+        <div
+          className={`fixed top-20 right-5 z-50 px-4 py-3 rounded-xl shadow-lg
+          text-white animate-in slide-in-from-top fade-in duration-300
+          ${alert.type === 'success' ? 'bg-emerald-500' : 'bg-red-500'}`}
+        >
+          {alert.message}
+        </div>
+      )}
+
       <h1 className="text-2xl font-bold text-slate-900">Kelola Pesanan</h1>
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
@@ -24,7 +67,7 @@ const SellerOrders: React.FC = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {DUMMY_ORDERS.map((order) => (
+            {order.map((order) => (
               <tr key={order.id} className="hover:bg-slate-50/50">
                 <td className="px-6 py-4 font-mono text-xs text-slate-600">{order.id}</td>
                 <td className="px-6 py-4 font-medium text-slate-900">{order.buyerName}</td>
@@ -38,15 +81,15 @@ const SellerOrders: React.FC = () => {
                   ) : <span className="text-slate-400 text-xs italic">Belum bayar</span>}
                 </td>
                 <td className="px-6 py-4">
-                   <Badge variant={order.status === OrderStatus.APPROVED ? 'success' : order.status === OrderStatus.PENDING ? 'warning' : 'danger'}>
+                  <Badge variant={order.status === OrderStatus.APPROVED ? 'success' : order.status === OrderStatus.PENDING ? 'warning' : 'danger'}>
                     {order.status}
                   </Badge>
                 </td>
                 <td className="px-6 py-4">
                   {order.status === OrderStatus.PENDING ? (
                     <div className="flex gap-2">
-                       <Button size="sm" variant="success">Setuju</Button>
-                       <Button size="sm" variant="danger">Tolak</Button>
+                      <Button size="sm" variant="success">Setuju</Button>
+                      <Button size="sm" variant="danger">Tolak</Button>
                     </div>
                   ) : order.status === OrderStatus.APPROVED ? (
                     <div className="flex flex-col gap-1">

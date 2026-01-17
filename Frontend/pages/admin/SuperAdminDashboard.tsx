@@ -1,16 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Badge } from '../../components/Badge';
 import { Button } from '../../components/Button';
+import { Customer, Seller } from '../../types';
 
-/**
- * Tipe data seller dari API Laravel
- */
-interface Seller {
-  id: number;
-  name: string;
-  email: string;
-  is_active: boolean;
-}
+
 
 const SuperAdminDashboard: React.FC = () => {
   /**
@@ -20,7 +13,7 @@ const SuperAdminDashboard: React.FC = () => {
    * loading  : status loading data
    */
   const [sellers, setSellers] = useState<Seller[]>([]);
-  const [buyers, setBuyers] = useState<any[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   /**
@@ -28,10 +21,23 @@ const SuperAdminDashboard: React.FC = () => {
    * Jalan sekali saat component pertama kali render
    */
   useEffect(() => {
-    fetch('http://127.0.0.1:8001/api/seller')
+    fetch('http://127.0.0.1:8000/api/seller')
       .then(res => res.json())
       .then(data => {
         setSellers(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Gagal ambil seller:', err);
+        setLoading(false);
+      });
+  }, []);
+
+  useEffect(() => {
+    fetch('http://127.0.0.1:8000/api/customer')
+      .then(res => res.json())
+      .then(data => {
+        setCustomers(data);
         setLoading(false);
       })
       .catch(err => {
@@ -77,7 +83,7 @@ const SuperAdminDashboard: React.FC = () => {
               Total Pembeli
             </p>
             <h3 className="text-3xl font-bold text-slate-900 mt-1">
-              {buyers.length}
+              {customers.length}
             </h3>
           </div>
           <div className="w-12 h-12 bg-emerald-50 rounded-lg flex items-center justify-center text-2xl">

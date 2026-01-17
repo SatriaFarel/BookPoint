@@ -1,10 +1,40 @@
 
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import { Badge } from '../../components/Badge';
 import { DUMMY_ORDERS, DUMMY_BOOKS } from '../../constants';
-import { OrderStatus } from '../../types';
+import { OrderStatus, Product, Seller } from '../../types';
 
 const SellerDashboard: React.FC = () => {
+  const [sellers, setSellers] = useState<Seller[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+        fetch('http://127.0.0.1:8000/api/seller')
+          .then(res => res.json())
+          .then(data => {
+            setSellers(data);
+            setLoading(false);
+          })
+          .catch(err => {
+            console.error('Gagal ambil seller:', err);
+            setLoading(false);
+          });
+      }, []);
+  
+    useEffect(() => {
+        fetch('http://127.0.0.1:8000/api/products')
+          .then(res => res.json())
+          .then(data => {
+            setProducts(data);
+            setLoading(false);
+          })
+          .catch(err => {
+            console.error('Gagal ambil products:', err);
+            setLoading(false);
+          });
+      }, []);
+
   const pendingOrders = DUMMY_ORDERS.filter(o => o.status === OrderStatus.PENDING);
   const totalSales = DUMMY_ORDERS.filter(o => o.status === OrderStatus.APPROVED).reduce((acc, curr) => acc + curr.total, 0);
 
@@ -21,7 +51,7 @@ const SellerDashboard: React.FC = () => {
         </div>
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
           <p className="text-sm font-medium text-slate-500 uppercase">Total Produk</p>
-          <h3 className="text-2xl font-bold text-slate-900 mt-2">{DUMMY_BOOKS.length}</h3>
+          <h3 className="text-2xl font-bold text-slate-900 mt-2">{products.length}</h3>
         </div>
       </div>
 
@@ -50,7 +80,7 @@ const SellerDashboard: React.FC = () => {
             <h2 className="text-lg font-bold text-slate-900">Stok Menipis</h2>
           </div>
           <div className="p-4">
-            {DUMMY_BOOKS.filter(b => b.stock <= 5).map(book => (
+            {products.filter(b => b.stock <= 5).map(book => (
                <div key={book.id} className="flex items-center justify-between p-3 hover:bg-slate-50 rounded-lg border border-transparent hover:border-slate-100 transition-all mb-2 last:mb-0">
                   <div>
                     <p className="font-semibold text-slate-800">{book.name}</p>

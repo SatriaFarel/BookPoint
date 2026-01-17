@@ -1,14 +1,16 @@
 import { useEffect, useState, FormEvent } from 'react';
-import { Badge } from '../../components/Badge';
 import { Button } from '../../components/Button';
-import { Seller } from '../../types';
+import { Customer } from '../../types';
 
-const API = 'http://127.0.0.1:8000/api/seller';
 
-const SellerPage = () => {
-  const [sellers, setSellers] = useState<Seller[]>([]);
+
+const API = 'http://127.0.0.1:8000/api/customer';
+
+const CustomerPage = () => {
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // ===== ALERT =====
   const [alert, setAlert] = useState<{
     type: 'success' | 'error';
     message: string;
@@ -19,32 +21,33 @@ const SellerPage = () => {
     setTimeout(() => setAlert(null), 3000);
   };
 
+  // ===== FORM STATE =====
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
 
-  const [nik, setNIK] = useState('');
+  const [nik, setNik] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [alamat, setAlamat] = useState('');
   const [password, setPassword] = useState('');
 
   /* ================= FETCH ================= */
-  const fetchSeller = async () => {
+  const fetchCustomers = async () => {
     try {
       const res = await fetch(API, {
         headers: { Accept: 'application/json' },
       });
       const data = await res.json();
-      setSellers(data);
+      setCustomers(data);
     } catch {
-      showAlert('error', 'Gagal mengambil data seller');
+      showAlert('error', 'Gagal mengambil data customer');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchSeller();
+    fetchCustomers();
   }, []);
 
   /* ================= SUBMIT ================= */
@@ -61,15 +64,18 @@ const SellerPage = () => {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: JSON.stringify({ nik, name, email, password, alamat }),
+        body: JSON.stringify({ nik, name, email, alamat, password }),
       });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Gagal menyimpan data');
 
-      showAlert('success', editId ? 'Seller berhasil diupdate' : 'Seller berhasil ditambahkan');
+      showAlert(
+        'success',
+        editId ? 'Customer berhasil diupdate' : 'Customer berhasil ditambahkan'
+      );
       closeForm();
-      fetchSeller();
+      fetchCustomers();
     } catch (err: any) {
       showAlert('error', err.message);
     }
@@ -81,12 +87,12 @@ const SellerPage = () => {
     setShowForm(true);
   };
 
-  const openEdit = (s: Seller) => {
-    setEditId(s.id);
-    setNIK(s.nik);
-    setName(s.name);
-    setEmail(s.email);
-    setAlamat(s.alamat);
+  const openEdit = (c: Customer) => {
+    setEditId(c.id);
+    setNik(c.nik);
+    setName(c.name);
+    setEmail(c.email);
+    setAlamat(c.alamat);
     setPassword('');
     setShowForm(true);
   };
@@ -98,7 +104,7 @@ const SellerPage = () => {
 
   const resetForm = () => {
     setEditId(null);
-    setNIK('');
+    setNik('');
     setName('');
     setEmail('');
     setAlamat('');
@@ -106,7 +112,7 @@ const SellerPage = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Hapus seller ini?')) return;
+    if (!confirm('Hapus customer ini?')) return;
 
     try {
       const res = await fetch(`${API}/${id}`, {
@@ -115,10 +121,10 @@ const SellerPage = () => {
       });
 
       if (!res.ok) throw new Error();
-      showAlert('success', 'Seller berhasil dihapus');
-      fetchSeller();
+      showAlert('success', 'Customer berhasil dihapus');
+      fetchCustomers();
     } catch {
-      showAlert('error', 'Gagal menghapus seller');
+      showAlert('error', 'Gagal menghapus customer');
     }
   };
 
@@ -129,7 +135,7 @@ const SellerPage = () => {
       {alert && (
         <div
           className={`fixed top-20 right-5 z-50 px-4 py-3 rounded-xl shadow-lg
-          text-white animate-in slide-in-from-top fade-in duration-300
+          text-white animate-in slide-in-from-top duration-300
           ${alert.type === 'success' ? 'bg-emerald-500' : 'bg-red-500'}`}
         >
           {alert.message}
@@ -138,9 +144,9 @@ const SellerPage = () => {
 
       {/* ===== HEADER ===== */}
       <div className="flex justify-between items-center">
-        <h2 className="text-lg font-bold text-slate-800">Manajemen Seller</h2>
+        <h2 className="text-lg font-bold text-slate-800">Manajemen Customer</h2>
         <Button size="sm" onClick={openCreate}>
-          + Tambah Seller
+          + Tambah Customer
         </Button>
       </div>
 
@@ -149,49 +155,45 @@ const SellerPage = () => {
         <p>Loading...</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {sellers.map(s => (
+          {customers.map(c => (
             <div
-              key={s.id}
-              className="group bg-white border border-slate-200 rounded-2xl p-5
+              key={c.id}
+              className="bg-white border border-slate-200 rounded-2xl p-5
                          shadow-sm hover:shadow-xl hover:-translate-y-1
                          transition-all duration-300"
             >
-              <div className="flex justify-between items-start">
-                <h3 className="font-semibold text-slate-800
-                               group-hover:text-indigo-600 transition">
-                  {s.name}
-                </h3>
-                <Badge variant={s.is_active ? 'success' : 'danger'}>
-                  {s.is_active ? 'ACTIVE' : 'INACTIVE'}
-                </Badge>
+              <h3 className="font-semibold text-slate-800">{c.name}</h3>
+
+              <div className="mt-2 space-y-1 text-sm text-slate-600">
+                <p><span className="font-medium">NIK:</span> {c.nik}</p>
+                <p><span className="font-medium">Email:</span> {c.email}</p>
+                <p><span className="font-medium">Alamat:</span> {c.alamat}</p>
+                <p>
+                  <span className="font-medium">Password:</span>{' '}
+                  <span className="tracking-widest">••••••••</span>
+                </p>
               </div>
 
-              <p className="text-sm text-slate-500 mt-1">{s.email}</p>
-              <p className="text-sm text-slate-500">{s.alamat}</p>
-
-              <div className="mt-3">
-                <Badge variant={s.is_online ? 'success' : 'secondary'}>
-                  {s.is_online ? 'ONLINE' : 'OFFLINE'}
-                </Badge>
-              </div>
-
-              <div className="mt-4 flex gap-4 opacity-0
-                              group-hover:opacity-100 transition">
+              <div className="mt-4 flex gap-4">
                 <button
-                  onClick={() => openEdit(s)}
-                  className="text-sm text-indigo-600 hover:underline"
+                  onClick={() => openEdit(c)}
+                  className="text-indigo-600 text-sm hover:underline"
                 >
                   Edit
                 </button>
                 <button
-                  onClick={() => handleDelete(s.id)}
-                  className="text-sm text-red-600 hover:underline"
+                  onClick={() => handleDelete(c.id)}
+                  className="text-red-600 text-sm hover:underline"
                 >
                   Hapus
                 </button>
               </div>
             </div>
           ))}
+
+          {customers.length === 0 && (
+            <p className="text-slate-400">Data customer kosong</p>
+          )}
         </div>
       )}
 
@@ -209,70 +211,53 @@ const SellerPage = () => {
                        shadow-xl animate-in zoom-in duration-200 space-y-4"
           >
             <h3 className="font-bold text-slate-800">
-              {editId ? 'Edit Seller' : 'Tambah Seller'}
+              {editId ? 'Edit Customer' : 'Tambah Customer'}
             </h3>
 
             <input
-              className="w-full rounded-xl border border-slate-300
-                         px-4 py-2 text-sm
-                         focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded-xl border px-4 py-2"
               placeholder="NIK"
               value={nik}
-              onChange={e => setNIK(e.target.value)}
+              onChange={e => setNik(e.target.value)}
               disabled={!!editId}
             />
 
             <input
-              className="w-full rounded-xl border border-slate-300
-                         px-4 py-2 text-sm
-                         focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded-xl border px-4 py-2"
               placeholder="Nama"
               value={name}
               onChange={e => setName(e.target.value)}
             />
 
             <input
-              className="w-full rounded-xl border border-slate-300
-                         px-4 py-2 text-sm
-                         focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded-xl border px-4 py-2"
               placeholder="Email"
               value={email}
               onChange={e => setEmail(e.target.value)}
             />
 
-            {!editId && (
-              <input
-                className="w-full rounded-xl border border-slate-300
-                           px-4 py-2 text-sm
-                           focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="Password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-              />
-            )}
-
             <textarea
-              className="w-full rounded-xl border border-slate-300
-                         px-4 py-2 text-sm
-                         focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded-xl border px-4 py-2"
               placeholder="Alamat"
               value={alamat}
               onChange={e => setAlamat(e.target.value)}
             />
 
+            {!editId && (
+              <input
+                className="w-full rounded-xl border px-4 py-2"
+                placeholder="Password"
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+              />
+            )}
+
             <div className="flex justify-end gap-3 pt-2">
-              <button
-                type="button"
-                onClick={closeForm}
-                className="text-sm text-slate-500 hover:text-slate-700"
-              >
+              <button type="button" onClick={closeForm} className="text-sm">
                 Batal
               </button>
-              <Button
-                size="sm"
-                type="submit"
-                className="hover:scale-105 active:scale-95 transition"
-              >
+              <Button size="sm" type="submit">
                 Simpan
               </Button>
             </div>
@@ -283,4 +268,4 @@ const SellerPage = () => {
   );
 };
 
-export default SellerPage;
+export default CustomerPage;

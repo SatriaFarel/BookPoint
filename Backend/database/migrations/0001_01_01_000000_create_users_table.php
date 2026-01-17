@@ -20,9 +20,12 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->foreignId('role_id')->constrained()->cascadeOnDelete();
+            $table->string('nik')->unique();
             $table->string('name');
             $table->string('email')->unique();
+            $table->string('foto');
             $table->string('password');
+            $table->string('alamat');
             $table->boolean('is_online')->default(false);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
