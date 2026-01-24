@@ -23,5 +23,12 @@ class Products extends Model
         'discount_percent', 
         'description',
     ];
+
+    // app/Models/Products.php
+    public function category()
+    {
+        return $this->belongsTo(Categories::class, 'category_id');
+    }
+
 }
 

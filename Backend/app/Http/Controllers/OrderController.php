@@ -10,52 +10,159 @@ use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
-    // READ ALL ORDER
-    public function index()
+    // READ ALL ORDER 
+    public function index(Request $request)
     {
-        $orders = DB::table('orders')
-            ->join('order_items', 'orders.id', '=', 'order_items.order_id')
-            ->join('users', 'users.id', '=', 'orders.customer_id')
-            ->join('products', 'product.id', '=', 'order.product_id')
-            ->select(
-                'orders.id as order_id',
-                'orders.status',
-                'order_items.quantity',
-                'products.name as product_name',
-                'orders.total_price',
-                'users.name'
-            );
+        $customerId = $request->customer_id;
+
+        if (!$customerId) {
+            return response()->json([
+                'message' => 'customer_id wajib dikirim'
+            ], 400);
+        }
+
+        $orders = Order::with(['items.product.category'])
+            ->where('customer_id', $customerId)
+            ->whereIn('status', ['diperiksa', 'disetujui', 'ditolak'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
         return response()->json(
-            $orders
+            $orders->map(function ($order) {
+                return [
+                    'id' => $order->id,
+                    'status' => $order->status,
+                    'total_price' => $order->total_price,
+                    'seller_id' => $order->seller_id,
+                    optional($order->created_at)->format('d M Y'),
+                    'resi' => $order->resi,
+                    'items' => $order->items->map(function ($item) {
+                        return [
+                            'product_id' => $item->product_id,
+                            'name' => $item->product->name,
+                            'category' => optional($item->product->category)->name ?? '-',
+                            'price' => $item->price,
+                            'quantity' => $item->quantity,
+                            'image' => $item->product->image,
+                        ];
+                    })
+                ];
+            })
         );
+    }
+
+    // GET INVOICE ORDER
+    public function invoice($id)
+    {
+        $order = Order::with([
+            'items.product',
+            'customer'
+        ])->find($id);
+
+        if (!$order) {
+            return response()->json([
+                'message' => 'Order tidak ditemukan'
+            ], 404);
+        }
+
+        return response()->json([
+            'id' => $order->id,
+            'status' => $order->status,
+            'total' => $order->total_price,
+            'date' => optional($order->created_at)->format('d M Y'),
+            'buyer' => [
+                'name' => $order->customer->name,
+            ],
+            'items' => $order->items->map(function ($item) {
+                return [
+                    'name' => $item->product->name,
+                    'price' => $item->price,
+                    'quantity' => $item->quantity,
+                ];
+            }),
+        ]);
     }
 
     // CREATE ORDER
     public function store(Request $request)
     {
         $request->validate([
-            'seller_id'        => 'required|integer',
-            'category_id'      => 'required|integer',
-            'image'            => 'nullable|string',
-            'name'             => 'required|string',
-            'stock'            => 'required|integer|min:0',
-            'price'            => 'required|numeric|min:0',
-            'discount_percent' => 'nullable|integer|min:0|max:100',
-            'description'      => 'nullable|string',
+            'customer_id'     => 'required|exists:users,id',
+            'seller_id'       => 'required|exists:users,id',
+            'payment_method'  => 'required|string',
+            'items'           => 'required',
+            'proof'           => 'required|image',
         ]);
 
-        $product = Products::create([
-            'seller_id'        => $request->seller_id,
-            'category_id'      => $request->category_id,
-            'image'            => $request->image,
-            'name'             => $request->name,
-            'stock'            => $request->stock,
-            'price'            => $request->price,
-            'discount_percent' => $request->discount_percent,
-            'description'      => $request->description,
-        ]);
+        DB::beginTransaction();
 
-        return response()->json($product);
+        try {
+            $items = json_decode($request->items, true);
+
+            if (!is_array($items) || count($items) === 0) {
+                return response()->json(['message' => 'Item tidak valid'], 422);
+            }
+
+            // upload bukti pembayaran
+            $proofPath = $request->file('proof')->store('payments', 'public');
+
+            $order = Order::create([
+                'customer_id'      => $request->customer_id,
+                'seller_id'        => $request->seller_id,
+                'status'           => 'diperiksa',
+                'total_price'      => 0,
+                'payment_method'   => $request->payment_method,
+                'bukti_pembayaran' => $proofPath,
+            ]);
+
+            $total = 0;
+
+            foreach ($items as $item) {
+                $product = Products::lockForUpdate()->find($item['product_id']);
+
+                if (!$product) {
+                    throw new \Exception('Produk tidak ditemukan');
+                }
+
+                // ❗ validasi stok
+                if ($product->stock < $item['quantity']) {
+                    throw new \Exception(
+                        'Stok produk "' . $product->name . '" tidak mencukupi'
+                    );
+                }
+
+                // simpan order item
+                Order_Items::create([
+                    'order_id'   => $order->id,
+                    'product_id' => $product->id,
+                    'quantity'   => $item['quantity'],
+                    'price'      => $item['price'],
+                ]);
+
+                // ⬇️ KURANGI STOK
+                $product->decrement('stock', $item['quantity']);
+
+                $total += $item['price'] * $item['quantity'];
+            }
+
+            // + PPN 11%
+            $order->update([
+                'total_price' => $total + ($total * 0.11),
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success'  => true,
+                'order_id' => $order->id,
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 400);
+        }
     }
 
     // UPDATE ORDER
@@ -83,5 +190,57 @@ class OrderController extends Controller
     {
         Products::findOrFail($id)->delete();
         return response()->json(['success' => true]);
+    }
+
+    public function sellerOrders($seller_id)
+    {
+        $orders = Order::query()
+            ->where('seller_id', $seller_id)
+            ->with(['customer', 'items.product'])
+            ->latest()
+            ->get()
+            ->map(function ($order) {
+                return [
+                    'id' => $order->id,
+                    'buyer_name' => $order->customer->name,
+                    'product_name' => $order->items
+                        ->map(fn($i) => $i->product->name . ' (x' . $i->quantity . ')')
+                        ->join(', '),
+                    'quantity' => $order->items->sum('quantity'),
+                    'total_price' => $order->total_price,
+                    'status' => $order->status,
+                    'proof' => $order->bukti_pembayaran,
+                ];
+            });
+
+        return response()->json($orders);
+    }
+
+    public function approve($id)
+    {
+        $order = Order::findOrFail($id);
+
+        $order->update([
+            'status' => 'disetujui',
+            'approved_at' => now(),
+        ]);
+
+        return response()->json([
+            'message' => 'Pesanan disetujui. Estimasi pengiriman 3 hari.'
+        ]);
+    }
+
+    public function reject($id)
+    {
+        $order = Order::findOrFail($id);
+
+        $order->update([
+            'status' => 'ditolak',
+            'refund_until' => now()->addMonth(),
+        ]);
+
+        return response()->json([
+            'message' => 'Pesanan ditolak. Refund maksimal 1 bulan.'
+        ]);
     }
 }

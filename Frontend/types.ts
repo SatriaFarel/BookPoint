@@ -53,6 +53,7 @@ export interface Product {
   id: number;
   seller_id: number;
   category_id: number;
+  category_name: string;
   image: string | null;
   name: string;
   stock: number;
@@ -84,6 +85,27 @@ export interface Order {
   date: string;
   resi?: string;
 }
+
+export interface BuyerCartProps {
+  user: User;
+}
+
+export type CartItem = {
+  id: number;
+  name: string;
+  price: number;
+  image: string;
+  qty: number;
+  selected: boolean;
+};
+
+export type CheckoutItem = {
+  id: number;
+  seller_id: number;
+  name: string;
+  price: number;
+  qty: number;
+};
 
 export interface AuthState {
   user: User | null;

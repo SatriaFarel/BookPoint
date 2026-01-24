@@ -4,35 +4,45 @@ namespace App\Http\Controllers;
 
 use App\Models\Products;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductsController extends Controller
 {
     // READ ALL PRODUCT
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(
-            Products::all()
-        );
+        $sellerId = $request->seller_id;
+
+        if (!$sellerId) {
+            return response()->json(Products::all());
+        } else{
+            return response()->json(Products::where('seller_id', $sellerId)->get());
+        }
     }
 
     // CREATE PRODUCT
     public function store(Request $request)
     {
         $request->validate([
-            'seller_id'        => 'required|integer',
-            'category_id'      => 'required|integer',
-            'image'            => 'nullable|string',
-            'name'             => 'required|string',
+            'seller_id'        => 'required|integer|exists:users,id',
+            'category_id'      => 'required|integer|exists:categories,id',
+            'image'            => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'name'             => 'required|string|max:255',
             'stock'            => 'required|integer|min:0',
             'price'            => 'required|numeric|min:0',
             'discount_percent' => 'nullable|integer|min:0|max:100',
             'description'      => 'nullable|string',
         ]);
 
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('products', 'public');
+        }
+
         $product = Products::create([
-            'seller_id'        => $request->seller_id,
+            'seller_id'        => $request->seller_id, // ✅ dari frontend
             'category_id'      => $request->category_id,
-            'image'            => $request->image,
+            'image'            => $imagePath,
             'name'             => $request->name,
             'stock'            => $request->stock,
             'price'            => $request->price,
@@ -40,8 +50,9 @@ class ProductsController extends Controller
             'description'      => $request->description,
         ]);
 
-        return response()->json($product);
+        return response()->json($product, 201);
     }
+
 
     // UPDATE PRODUCT
     public function update(Request $request, $id)
@@ -49,24 +60,55 @@ class ProductsController extends Controller
         $product = Products::findOrFail($id);
 
         $request->validate([
-            'category_id'      => 'sometimes|integer',
-            'image'            => 'nullable|string',
-            'name'             => 'sometimes|string',
+            'category_id'      => 'sometimes|integer|exists:categories,id',
+            'image'            => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'name'             => 'sometimes|string|max:255',
             'stock'            => 'sometimes|integer|min:0',
             'price'            => 'sometimes|numeric|min:0',
             'discount_percent' => 'nullable|integer|min:0|max:100',
             'description'      => 'nullable|string',
         ]);
 
-        $product->update($request->all());
+        // kalau upload image baru
+        if ($request->hasFile('image')) {
+            // hapus image lama (kalau ada)
+            if ($product->image && Storage::disk('public')->exists($product->image)) {
+                Storage::disk('public')->delete($product->image);
+            }
 
-        return response()->json(['success' => true]);
+            $product->image = $request->file('image')->store('products', 'public');
+        }
+
+        // update field lain (AMAN, bukan all())
+        $product->update($request->only([
+            'category_id',
+            'name',
+            'stock',
+            'price',
+            'discount_percent',
+            'description',
+        ]));
+
+        return response()->json([
+            'message' => 'Produk berhasil diperbarui',
+            'data'    => $product
+        ]);
     }
 
     // DELETE PRODUCT
     public function destroy($id)
     {
-        Products::findOrFail($id)->delete();
-        return response()->json(['success' => true]);
+        $product = Products::findOrFail($id);
+
+        // hapus image kalau ada
+        if ($product->image && Storage::disk('public')->exists($product->image)) {
+            Storage::disk('public')->delete($product->image);
+        }
+
+        $product->delete();
+
+        return response()->json([
+            'message' => 'Produk berhasil dihapus'
+        ]);
     }
 }

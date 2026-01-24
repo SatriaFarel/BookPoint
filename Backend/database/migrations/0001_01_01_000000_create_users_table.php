@@ -26,6 +26,8 @@ return new class extends Migration
             $table->string('foto');
             $table->string('password');
             $table->string('alamat');
+            $table->string('no_rekening')->nullable();
+            $table->string('qris')->nullable();
             $table->boolean('is_online')->default(false);
             $table->boolean('is_active')->default(true);
             $table->timestamps();

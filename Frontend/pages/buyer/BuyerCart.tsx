@@ -1,87 +1,126 @@
-
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { DUMMY_BOOKS } from '../../constants';
-import { User } from '../../types';
+import { User, BuyerCartProps, CartItem } from '../../types';
 import { Button } from '../../components/Button';
 
-interface BuyerCartProps {
-  user: User;
-  onLogout: () => void;
-}
-
-const BuyerCart: React.FC<BuyerCartProps> = ({ user, onLogout }) => {
+const BuyerCart: React.FC<BuyerCartProps> = ({ user }) => {
   const navigate = useNavigate();
-  const [cartItems, setCartItems] = useState([
-    { ...DUMMY_BOOKS[0], quantity: 1 },
-    { ...DUMMY_BOOKS[1], quantity: 2 },
-  ]);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
-  const subtotal = cartItems.reduce((acc, curr) => acc + (curr.price * curr.quantity), 0);
-  const tax = subtotal * 0.11;
-  const total = subtotal + tax;
+  /* ===== LOAD CART ===== */
+  useEffect(() => {
+    const cart = localStorage.getItem('bookpoint_cart');
+    if (!cart) return;
+
+    const items = JSON.parse(cart).map((i: any) => ({
+      ...i,
+      price: Number(i.price),
+      selected: true, // default dipilih
+    }));
+
+    setCartItems(items);
+  }, []);
+
+  /* ===== UPDATE LOCALSTORAGE ===== */
+  const syncCart = (items: CartItem[]) => {
+    setCartItems(items);
+    localStorage.setItem(
+      'bookpoint_cart',
+      JSON.stringify(items.map(({ selected, ...rest }) => rest))
+    );
+  };
+
+  /* ===== TOGGLE PILIH ===== */
+  const toggleSelect = (id: number) => {
+    syncCart(
+      cartItems.map(i =>
+        i.id === id ? { ...i, selected: !i.selected } : i
+      )
+    );
+  };
+
+  /* ===== HAPUS ITEM ===== */
+  const removeItem = (id: number) => {
+    syncCart(cartItems.filter(i => i.id !== id));
+  };
+
+  /* ===== HITUNG ===== */
+  const selectedItems = cartItems.filter(i => i.selected);
+  const total = selectedItems.reduce(
+    (acc, i) => acc + i.price * i.qty,
+    0
+  );
 
   const handleCheckout = () => {
-    alert('Pesanan berhasil dibuat! Silakan upload bukti pembayaran di halaman transaksi.');
-    navigate('/buyer/transactions');
+    if (selectedItems.length === 0) {
+      alert('Pilih minimal 1 produk');
+      return;
+    }
+
+    localStorage.setItem(
+      'bookpoint_checkout',
+      JSON.stringify(selectedItems)
+    );
+
+    navigate('/buyer/checkout');
   };
 
   return (
     <div className="min-h-screen bg-slate-50">
-       <nav className="bg-white border-b border-slate-200 p-4 sticky top-0 z-20">
+      <nav className="bg-white border-b p-4 sticky top-0">
         <div className="max-w-5xl mx-auto flex items-center gap-4">
-           <Link to="/buyer" className="p-2 hover:bg-slate-100 rounded-full transition-all">←</Link>
-           <h1 className="text-xl font-bold text-slate-900">Keranjang Belanja</h1>
+          <Link to="/buyer">←</Link>
+          <h1 className="text-xl font-bold">Keranjang</h1>
         </div>
       </nav>
 
-      <main className="max-w-5xl mx-auto p-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <main className="max-w-5xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* LIST */}
         <div className="lg:col-span-2 space-y-4">
           {cartItems.map(item => (
-            <div key={item.id} className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex gap-4">
-              <img src={item.image} alt={item.name} className="w-20 h-28 object-cover rounded shadow-sm" />
+            <div key={item.id} className="bg-white p-4 rounded-xl border flex gap-4">
+              <input
+                type="checkbox"
+                checked={item.selected}
+                onChange={() => toggleSelect(item.id)}
+              />
+
+              <img
+                src={`http://127.0.0.1:8000/storage/${item.image}`}
+                className="w-20 h-28 object-cover rounded"
+              />
+
               <div className="flex-1">
-                <h3 className="font-bold text-slate-900">{item.name}</h3>
-                <p className="text-xs text-slate-400 mb-4">{item.category}</p>
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-900">Rp {item.price.toLocaleString()}</span>
-                  <div className="flex items-center gap-3 border border-slate-200 rounded-lg p-1">
-                    <button className="w-6 h-6 flex items-center justify-center bg-slate-50 rounded">-</button>
-                    <span className="text-sm font-bold w-4 text-center">{item.quantity}</span>
-                    <button className="w-6 h-6 flex items-center justify-center bg-slate-50 rounded">+</button>
-                  </div>
-                </div>
+                <h3 className="font-bold">{item.name}</h3>
+                <p className="text-sm">Qty: {item.qty}</p>
+                <p className="font-bold">
+                  Rp {(item.price * item.qty).toLocaleString()}
+                </p>
               </div>
-              <button className="text-red-400 hover:text-red-600">🗑️</button>
+
+              <button
+                onClick={() => removeItem(item.id)}
+                className="text-red-500"
+              >
+                🗑️
+              </button>
             </div>
           ))}
         </div>
 
-        <div className="space-y-6">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-            <h2 className="text-lg font-bold text-slate-900 mb-6">Ringkasan Pesanan</h2>
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between text-slate-500">
-                <span>Subtotal</span>
-                <span>Rp {subtotal.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between text-slate-500">
-                <span>PPN (11%)</span>
-                <span>Rp {tax.toLocaleString()}</span>
-              </div>
-              <div className="border-t border-slate-100 pt-3 flex justify-between font-bold text-slate-900 text-lg">
-                <span>Total</span>
-                <span>Rp {total.toLocaleString()}</span>
-              </div>
+        {/* SUMMARY */}
+        <div className="bg-white p-6 rounded-xl border h-fit">
+          <h2 className="font-bold mb-4">Ringkasan</h2>
+          <div className="text-sm space-y-2">
+            <div className="border-t pt-2 flex justify-between font-bold">
+              <span>Total</span>
+              <span>Rp {total.toLocaleString()}</span>
             </div>
-            <Button fullWidth size="lg" className="mt-8" onClick={handleCheckout}>Checkout Sekarang</Button>
           </div>
 
-          <div className="bg-blue-50 p-6 rounded-xl border border-blue-100">
-            <h3 className="font-bold text-blue-900 text-sm mb-2">Metode Pembayaran</h3>
-            <p className="text-xs text-blue-800 leading-relaxed mb-4">Transfer Bank Central Lumina (BCL) 0987-1234-5678 a/n PT Lumina Books.</p>
-            <div className="text-[10px] text-blue-500 font-bold uppercase tracking-widest">Wajib Upload Bukti Transfer</div>
-          </div>
+          <Button fullWidth className="mt-6" onClick={handleCheckout}>
+            Checkout
+          </Button>
         </div>
       </main>
     </div>

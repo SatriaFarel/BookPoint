@@ -2,17 +2,18 @@
 
 namespace App\Models;
 
-use MongoDB\Laravel\Eloquent\Model;
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Message extends Model
 {
-    protected $connection = 'mongodb';
-    protected $collection = 'message';
+    protected $fillable = ['chat_id', 'sender_id', 'message'];
 
-    protected $fillable = [
-        'sender_id',
-        'message',
-        'created_at'
-    ];
+    public function chat()
+    {
+        return $this->belongsTo(Chat::class);
+    }
 }
+
 

@@ -18,6 +18,9 @@ class User extends Authenticatable
         'email',
         'password',
         'alamat',
+        'foto',
+        'no_rekening',
+        'qris',
         'is_online',
         'is_active',
     ];

@@ -9,7 +9,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "jspdf": "^4.0.0",
+    "jspdf-autotable": "^5.0.7",
+    "laravel-echo": "^2.3.0",
     "lucide-react": "0.344.0",
+    "pusher-js": "^8.4.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "6.22.3",

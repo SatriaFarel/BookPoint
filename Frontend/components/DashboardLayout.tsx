@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard, FolderTree, BookOpen, ShoppingBag, BarChart3,
-  HelpCircle, LogOut, ChevronLeft, ChevronRight,
+  LayoutDashboard, BookOpen, ShoppingBag, BarChart3,
+  HelpCircle, LogOut, ChevronLeft, MessageCircle,
   Store, Users, Tags, User as UserIcon, Menu
 } from 'lucide-react';
 import { User, UserRole } from '../types';
@@ -14,8 +14,6 @@ interface DashboardLayoutProps {
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ user, onLogout }) => {
   const location = useLocation();
-
-  // ⬅️ default: desktop open, mobile close
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const adminMenu = [
@@ -30,11 +28,15 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ user, onLogout }) => 
     { name: 'Produk', path: '/seller/products', icon: <BookOpen size={20} /> },
     { name: 'Pesanan', path: '/seller/orders', icon: <ShoppingBag size={20} /> },
     { name: 'Laporan', path: '/seller/reports', icon: <BarChart3 size={20} /> },
+    { name: 'Chat', path: '/seller/chat', icon: <MessageCircle size={20} /> },
     { name: 'Help', path: '/seller/help', icon: <HelpCircle size={20} /> },
   ];
 
   const currentMenu =
     user.role === UserRole.SUPER_ADMIN ? adminMenu : sellerMenu;
+
+  const profilePath =
+    user.role === UserRole.SUPER_ADMIN ? '/admin/profile' : '/seller/profile';
 
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden">
@@ -111,12 +113,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ user, onLogout }) => 
         <header className="h-16 bg-white border-b border-slate-200
                            flex items-center justify-between px-4 md:px-8
                            shadow-sm z-10">
+
+          {/* LEFT */}
           <div className="flex items-center gap-3">
-            {/* MOBILE MENU BUTTON */}
             <button
               onClick={() => setIsSidebarOpen(true)}
-              className="md:hidden p-2 rounded-lg
-                         hover:bg-slate-100"
+              className="md:hidden p-2 rounded-lg hover:bg-slate-100"
             >
               <Menu size={22} />
             </button>
@@ -127,6 +129,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ user, onLogout }) => 
             </span>
           </div>
 
+          {/* RIGHT */}
           <div className="flex items-center gap-4">
             <div className="hidden sm:block text-right">
               <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">
@@ -136,11 +139,18 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ user, onLogout }) => 
                 {user.role.replace('_', ' ')}
               </p>
             </div>
-            <div className="h-9 w-9 rounded-full bg-slate-100
-                            flex items-center justify-center
-                            border border-slate-200">
+
+            {/* PROFILE ICON */}
+            <Link
+              to={profilePath}
+              className="h-9 w-9 rounded-full bg-slate-100
+                         flex items-center justify-center
+                         border border-slate-200
+                         hover:bg-slate-200 transition"
+              title="Profil"
+            >
               <UserIcon size={18} />
-            </div>
+            </Link>
           </div>
         </header>
 

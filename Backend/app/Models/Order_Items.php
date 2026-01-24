@@ -18,5 +18,17 @@ class Order_Items extends Model
         'quantity',
         'price',
     ];
+
+    // ✅ RELASI KE ORDER
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
+    }
+
+    // ✅ RELASI KE PRODUCT
+    public function product()
+    {
+        return $this->belongsTo(Products::class, 'product_id');
+    }
 }
 

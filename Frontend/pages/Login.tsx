@@ -53,7 +53,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, user }) => {
 
       if (!res.ok) {
         // ⛔ bersihin state kalau login gagal
-        localStorage.removeItem('lumina_user');
+        localStorage.removeItem('user');
         throw new Error(data.message || 'Login gagal');
       }
 

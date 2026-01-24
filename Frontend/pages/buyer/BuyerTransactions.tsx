@@ -1,94 +1,153 @@
-
-import React, {useState, useEffect} from 'react';
-import { Link } from 'react-router-dom';
-import { DUMMY_ORDERS } from '../../constants';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { User, OrderStatus } from '../../types';
 import { Badge } from '../../components/Badge';
 import { Button } from '../../components/Button';
 
 interface BuyerTransactionsProps {
   user: User;
-  onLogout: () => void;
 }
 
-const BuyerTransactions: React.FC<BuyerTransactionsProps> = ({ user, onLogout }) => {
+type OrderItem = {
+  name: string;
+};
 
-  const API = 'http://127.0.0.1:8000/api/orders';
-  
-  const [order, setOrders] = useState('');
+type Order = {
+  id: number;
+  status: OrderStatus;
+  total_price: number;
+  created_at: string;
+  seller_id: number;
+  resi?: string | null;
+  items: OrderItem[];
+};
+
+const BuyerTransactions: React.FC<BuyerTransactionsProps> = ({ user }) => {
+  const API = 'http://127.0.0.1:8000/api';
+  const navigate = useNavigate();
+
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [alert, setAlert] = useState(true);
 
-
-  /* ================= ALERT ================= */
-  const showAlert = (type: 'success' | 'error', message: string) => {
-    setAlert({ type, message });
-    setTimeout(() => setAlert(null), 3000);
+  /* ===== LOAD TRANSACTIONS ===== */
+  const fetchOrders = async () => {
+    try {
+      const res = await fetch(`${API}/orders?customer_id=${user.id}`);
+      const data = await res.json();
+      setOrders(Array.isArray(data) ? data : []);
+    } catch {
+      alert('Gagal mengambil transaksi');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  /* ================= FETCH ================= */
-    const fetchProducts = async () => {
-      try {
-        const res = await fetch(API);
-        const data = await res.json();
-        setOrders(data);
-      } catch {
-        showAlert('error', 'Gagal mengambil produk');
-      } finally {
-        setLoading(false);
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  /* ===== START CHAT WITH SELLER ===== */
+  const startChat = async (sellerId: number) => {
+    try {
+      const res = await fetch(`${API}/chats`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          buyer_id: user.id,
+          seller_id: sellerId,
+        }),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text);
       }
-    };
-  
-    useEffect(() => {
-      fetchProducts();
-    }, []);
+
+      const chat = await res.json();
+
+      // ⬇️ PINDAH KE MENU CHAT TANPA RELOAD
+      navigate(`/buyer/chat/${chat.id}`);
+    } catch (err) {
+      console.error(err);
+      alert('Gagal memulai chat');
+    }
+  };
+
+  if (loading) {
+    return <p className="p-6 text-slate-500">Loading...</p>;
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <nav className="bg-white border-b border-slate-200 sticky top-0 z-20 px-4 py-4">
+      {/* NAVBAR */}
+      <nav className="bg-white border-b sticky top-0 z-20 px-4 py-4">
         <div className="max-w-5xl mx-auto flex justify-between items-center">
-          <Link to="/buyer" className="text-xl font-bold text-slate-900">Lumina</Link>
+          <Link to="/buyer" className="text-xl font-bold">Lumina</Link>
           <div className="flex gap-6">
-             <Link to="/buyer" className="text-slate-500 font-medium">Store</Link>
-             <Link to="/buyer/transactions" className="text-blue-600 font-bold">History</Link>
+            <Link to="/buyer" className="text-slate-500">Store</Link>
+            <Link to="/buyer/transactions" className="text-blue-600 font-bold">
+              History
+            </Link>
           </div>
         </div>
       </nav>
 
+      {/* CONTENT */}
       <main className="max-w-5xl mx-auto p-4 py-8 space-y-8">
-        <h1 className="text-2xl font-bold text-slate-900">Riwayat Transaksi</h1>
+        <h1 className="text-2xl font-bold">Riwayat Transaksi</h1>
+
+        {orders.length === 0 && (
+          <p className="text-slate-500">Belum ada transaksi</p>
+        )}
 
         <div className="space-y-4">
-          {DUMMY_ORDERS.map(order => (
-            <div key={order.id} className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          {orders.map(order => (
+            <div
+              key={order.id}
+              className="bg-white p-6 rounded-xl border flex flex-col md:flex-row justify-between gap-6"
+            >
+              {/* INFO */}
               <div className="space-y-2">
                 <div className="flex items-center gap-3">
-                  <span className="font-mono text-sm font-bold text-slate-400">{order.id}</span>
-                  <Badge variant={order.status === OrderStatus.APPROVED ? 'success' : order.status === OrderStatus.PENDING ? 'warning' : 'danger'}>
+                  <span className="font-mono text-sm text-slate-400">
+                    #{order.id}
+                  </span>
+                  <Badge
+                    variant={
+                      order.status === OrderStatus.APPROVED
+                        ? 'success'
+                        : order.status === OrderStatus.PENDING
+                        ? 'warning'
+                        : 'danger'
+                    }
+                  >
                     {order.status}
                   </Badge>
                 </div>
-                <h3 className="font-bold text-slate-800">
-                   {order.items.map(i => i.bookName).join(', ')}
+
+                <h3 className="font-bold">
+                  {order.items.map(i => i.name).join(', ')}
                 </h3>
-                <p className="text-xs text-slate-400">{order.date} • Rp {order.total.toLocaleString()}</p>
+
+                <p className="text-xs text-slate-400">
+                  {order.created_at} • Rp {order.total_price.toLocaleString()}
+                </p>
               </div>
 
-              <div className="flex flex-wrap gap-3">
-                {order.status === OrderStatus.PENDING && (
-                  <div className="flex flex-col gap-2">
-                     <span className="text-[10px] text-slate-400 font-bold uppercase">Upload Bukti</span>
-                     <input type="file" className="text-xs text-slate-500 file:mr-4 file:py-1.5 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
-                  </div>
-                )}
-                {order.status === OrderStatus.APPROVED && (
-                  <div className="flex flex-col">
-                    <span className="text-[10px] text-emerald-600 font-bold uppercase">Nomor Resi</span>
-                    <span className="font-mono font-bold text-slate-900">{order.resi || 'Diproses'}</span>
-                  </div>
-                )}
+              {/* ACTION */}
+              <div className="flex flex-wrap items-center gap-3">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => startChat(order.seller_id)}
+                >
+                  Chat Penjual
+                </Button>
+
                 <Link to={`/buyer/invoice/${order.id}`}>
-                   <Button variant="outline" size="sm">Lihat Invoice</Button>
+                  <Button size="sm" variant="outline">
+                    Invoice
+                  </Button>
                 </Link>
               </div>
             </div>

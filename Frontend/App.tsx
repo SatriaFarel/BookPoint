@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 import Login from './pages/Login';
@@ -18,44 +18,61 @@ import SellerHelp from './pages/seller/SellerHelp';
 import BuyerHome from './pages/buyer/BuyerHome';
 import BuyerCart from './pages/buyer/BuyerCart';
 import BuyerTransactions from './pages/buyer/BuyerTransactions';
+import BuyerCheckout from './pages/buyer/BuyerCheckout';
 import BuyerInvoice from './pages/buyer/BuyerInvoice';
 
 import DashboardLayout from './components/DashboardLayout';
+import Profile from './components/Profile';
+import ChatPage from './src/component/ChatPage';
+
 import { User, UserRole } from './types';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('lumina_user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
+    const saved = localStorage.getItem('user');
+    if (saved) setUser(JSON.parse(saved));
   }, []);
 
   const handleLogin = (u: User) => {
     setUser(u);
-    localStorage.setItem('lumina_user', JSON.stringify(u));
+    localStorage.setItem('user', JSON.stringify(u));
   };
 
   const handleLogout = async () => {
+    const raw = localStorage.getItem('user');
+    const u = raw ? JSON.parse(raw) : null;
+
+    if (!u?.id) {
+      alert('Data user tidak valid');
+      return;
+    }
+
     try {
-      await fetch('http://127.0.0.1:8000/api/auth/logout', {
+      const res = await fetch('http://127.0.0.1:8000/api/auth/logout', {
         method: 'POST',
         headers: {
-          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
-        credentials: 'include', // penting kalau pakai session
+        body: JSON.stringify({ id: u.id }),
       });
-    } catch {
-      // kalau gagal pun tetap logout frontend
-    } finally {
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        alert(data?.message || 'Logout gagal');
+        return;
+      }
+
       setUser(null);
-      localStorage.removeItem('lumina_user');
-      window.location.href = '#/login'; // paksa bersih
+      localStorage.removeItem('user');
+      window.location.replace('#/login');
+
+    } catch {
+      alert('Server tidak bisa dihubungi');
     }
   };
-
 
   return (
     <HashRouter>
@@ -64,7 +81,7 @@ const App: React.FC = () => {
         <Route path="/login" element={<Login onLogin={handleLogin} user={user} />} />
         <Route path="/register" element={<Register />} />
 
-        {/* SUPER ADMIN */}
+        {/* ADMIN */}
         <Route
           path="/admin/*"
           element={
@@ -77,6 +94,7 @@ const App: React.FC = () => {
           <Route path="sellers" element={<SellersPage />} />
           <Route path="customers" element={<CustomersPage />} />
           <Route path="categories" element={<CategoriesPage />} />
+          <Route path="profile" element={<Profile user={user} />} />
         </Route>
 
         {/* SELLER */}
@@ -93,9 +111,11 @@ const App: React.FC = () => {
           <Route path="orders" element={<SellerOrders />} />
           <Route path="reports" element={<SellerReports />} />
           <Route path="help" element={<SellerHelp />} />
+          <Route path="profile" element={<Profile user={user} />} />
+          <Route path="chat" element={<ChatPage />} />
         </Route>
 
-        {/* BUYER — JANGAN NESTED */}
+        {/* BUYER */}
         <Route
           path="/buyer"
           element={
@@ -104,30 +124,13 @@ const App: React.FC = () => {
               : <Navigate to="/login" replace />
           }
         />
-        <Route
-          path="/buyer/cart"
-          element={
-            user?.role === UserRole.CUSTOMER
-              ? <BuyerCart user={user} onLogout={handleLogout} />
-              : <Navigate to="/login" replace />
-          }
-        />
-        <Route
-          path="/buyer/transactions"
-          element={
-            user?.role === UserRole.CUSTOMER
-              ? <BuyerTransactions user={user} onLogout={handleLogout} />
-              : <Navigate to="/login" replace />
-          }
-        />
-        <Route
-          path="/buyer/invoice/:id"
-          element={
-            user?.role === UserRole.CUSTOMER
-              ? <BuyerInvoice user={user} onLogout={handleLogout} />
-              : <Navigate to="/login" replace />
-          }
-        />
+        <Route path="/buyer/cart" element={<BuyerCart user={user} onLogout={handleLogout} />} />
+        <Route path="/buyer/transactions" element={<BuyerTransactions user={user} onLogout={handleLogout} />} />
+        <Route path="/buyer/checkout" element={<BuyerCheckout user={user} onLogout={handleLogout} />} />
+        <Route path="/buyer/invoice/:id" element={<BuyerInvoice user={user} onLogout={handleLogout} />} />
+        <Route path="/buyer/profile" element={<Profile user={user} />} />
+        <Route path="/buyer/chat/:sellerId" element={<ChatPage />} />
+
 
         {/* FALLBACK */}
         <Route
