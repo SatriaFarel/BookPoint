@@ -29,10 +29,31 @@ const BuyerTransactions: React.FC<BuyerTransactionsProps> = ({ user }) => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
-  /* ===== LOAD TRANSACTIONS ===== */
+  /* ===== HELPER: BADGE VARIANT ===== */
+  const getBadgeVariant = (status: OrderStatus) => {
+    switch (status) {
+      case OrderStatus.APPROVED:
+        return 'success';
+      case OrderStatus.PENDING:
+        return 'warning';
+      case OrderStatus.SHIPPED:
+        return 'info';
+      case OrderStatus.REJECTED:
+        return 'danger';
+      default:
+        return 'secondary';
+    }
+  };
+
+  /* ===== LOAD TRANSACTIONS (SEMUA STATUS) ===== */
   const fetchOrders = async () => {
     try {
-      const res = await fetch(`${API}/orders?customer_id=${user.id}`);
+      const res = await fetch(`${API}/orders?customer_id=${user.id}`,
+        {
+          method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        }
+      );
       const data = await res.json();
       setOrders(Array.isArray(data) ? data : []);
     } catch {
@@ -46,7 +67,7 @@ const BuyerTransactions: React.FC<BuyerTransactionsProps> = ({ user }) => {
     fetchOrders();
   }, []);
 
-  /* ===== START CHAT WITH SELLER ===== */
+  /* ===== START CHAT ===== */
   const startChat = async (sellerId: number) => {
     try {
       const res = await fetch(`${API}/chats`, {
@@ -58,17 +79,11 @@ const BuyerTransactions: React.FC<BuyerTransactionsProps> = ({ user }) => {
         }),
       });
 
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text);
-      }
+      if (!res.ok) throw new Error('Chat gagal dibuat');
 
       const chat = await res.json();
-
-      // ⬇️ PINDAH KE MENU CHAT TANPA RELOAD
       navigate(`/buyer/chat/${chat.id}`);
-    } catch (err) {
-      console.error(err);
+    } catch {
       alert('Gagal memulai chat');
     }
   };
@@ -85,7 +100,10 @@ const BuyerTransactions: React.FC<BuyerTransactionsProps> = ({ user }) => {
           <Link to="/buyer" className="text-xl font-bold">Lumina</Link>
           <div className="flex gap-6">
             <Link to="/buyer" className="text-slate-500">Store</Link>
-            <Link to="/buyer/transactions" className="text-blue-600 font-bold">
+            <Link
+              to="/buyer/transactions"
+              className="text-blue-600 font-bold"
+            >
               History
             </Link>
           </div>
@@ -112,15 +130,8 @@ const BuyerTransactions: React.FC<BuyerTransactionsProps> = ({ user }) => {
                   <span className="font-mono text-sm text-slate-400">
                     #{order.id}
                   </span>
-                  <Badge
-                    variant={
-                      order.status === OrderStatus.APPROVED
-                        ? 'success'
-                        : order.status === OrderStatus.PENDING
-                        ? 'warning'
-                        : 'danger'
-                    }
-                  >
+
+                  <Badge variant={getBadgeVariant(order.status)}>
                     {order.status}
                   </Badge>
                 </div>
@@ -130,7 +141,8 @@ const BuyerTransactions: React.FC<BuyerTransactionsProps> = ({ user }) => {
                 </h3>
 
                 <p className="text-xs text-slate-400">
-                  {order.created_at} • Rp {order.total_price.toLocaleString()}
+                  {order.created_at} • Rp{' '}
+                  {order.total_price.toLocaleString()}
                 </p>
               </div>
 

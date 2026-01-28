@@ -11,10 +11,10 @@ export enum UserStatus {
 }
 
 export enum OrderStatus {
-  PENDING = 'PENDING',
-  APPROVED = 'APPROVED',
-  REJECTED = 'REJECTED',
-  REFUNDED = 'REFUNDED'
+  PENDING = 'diperiksa',
+  APPROVED = 'disetujui',
+  REJECTED = 'ditolak',
+  SHIPPED = 'dikirim'
 }
 
 export interface User {
@@ -31,6 +31,11 @@ export interface Seller {
   name: string;
   email: string;
   alamat: string;
+  no_rekening?: string;
+  foto?: string;
+  qris?: string;
+  created_at: string;
+  updated_at: string;
   is_active: boolean;
   is_online: boolean;
 }
@@ -41,6 +46,7 @@ export interface Customer {
   name: string;
   email: string;
   alamat: string;
+  foto: string;
   password?: string; // jangan ditampilin asli
 }
 

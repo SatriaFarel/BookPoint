@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\Order_Items;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Artisan;
 
 class OrderController extends Controller
 {
@@ -23,7 +24,7 @@ class OrderController extends Controller
 
         $orders = Order::with(['items.product.category'])
             ->where('customer_id', $customerId)
-            ->whereIn('status', ['diperiksa', 'disetujui', 'ditolak'])
+            ->whereIn('status', ['diperiksa', 'disetujui', 'ditolak', 'dikirim', 'selesai'])
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -113,6 +114,7 @@ class OrderController extends Controller
                 'total_price'      => 0,
                 'payment_method'   => $request->payment_method,
                 'bukti_pembayaran' => $proofPath,
+                'created_at' => now(),
             ]);
 
             $total = 0;
@@ -145,9 +147,8 @@ class OrderController extends Controller
                 $total += $item['price'] * $item['quantity'];
             }
 
-            // + PPN 11%
             $order->update([
-                'total_price' => $total + ($total * 0.11),
+                'total_price' => $total,
             ]);
 
             DB::commit();
@@ -198,23 +199,27 @@ class OrderController extends Controller
             ->where('seller_id', $seller_id)
             ->with(['customer', 'items.product'])
             ->latest()
-            ->get()
-            ->map(function ($order) {
-                return [
-                    'id' => $order->id,
-                    'buyer_name' => $order->customer->name,
-                    'product_name' => $order->items
-                        ->map(fn($i) => $i->product->name . ' (x' . $i->quantity . ')')
-                        ->join(', '),
-                    'quantity' => $order->items->sum('quantity'),
-                    'total_price' => $order->total_price,
-                    'status' => $order->status,
-                    'proof' => $order->bukti_pembayaran,
-                ];
-            });
+            ->paginate(10);
+
+        $orders->getCollection()->transform(function ($order) {
+            return [
+                'id' => $order->id,
+                'buyer_name' => $order->customer->name,
+                'product_name' => $order->items
+                    ->map(fn($i) => $i->product->name . ' (x' . $i->quantity . ')')
+                    ->join(', '),
+                'quantity' => $order->items->sum('quantity'),
+                'total_price' => $order->total_price,
+                'status' => $order->status,
+                'proof' => $order->bukti_pembayaran,
+                'resi' => $order->resi,
+                'expedition' => $order->expedition,
+            ];
+        });
 
         return response()->json($orders);
     }
+
 
     public function approve($id)
     {
@@ -222,7 +227,7 @@ class OrderController extends Controller
 
         $order->update([
             'status' => 'disetujui',
-            'approved_at' => now(),
+            'updated_at' => now(),
         ]);
 
         return response()->json([
@@ -236,11 +241,17 @@ class OrderController extends Controller
 
         $order->update([
             'status' => 'ditolak',
-            'refund_until' => now()->addMonth(),
+            'updated_at' => now(),
         ]);
 
         return response()->json([
             'message' => 'Pesanan ditolak. Refund maksimal 1 bulan.'
         ]);
+    }
+
+    public function autoUpdate()
+    {
+        Artisan::call('orders:auto-update');
+        return response()->json(['status' => 'ok']);
     }
 }

@@ -21,7 +21,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, user }) => {
   /* ================= REDIRECT JIKA SUDAH LOGIN ================= */
   useEffect(() => {
     if (!user) return;
-    if (!user.role) return; // ⛔ guard penting
+    if (!user.role) return;
 
     let path = '/login';
 
@@ -31,7 +31,6 @@ const Login: React.FC<LoginProps> = ({ onLogin, user }) => {
 
     navigate(path, { replace: true });
   }, [user, navigate]);
-
 
   /* ================= SUBMIT ================= */
   const handleSubmit = async (e: React.FormEvent) => {
@@ -52,11 +51,15 @@ const Login: React.FC<LoginProps> = ({ onLogin, user }) => {
       const data = await res.json();
 
       if (!res.ok) {
-        // ⛔ bersihin state kalau login gagal
+        // bersihin local kalau gagal
         localStorage.removeItem('user');
         throw new Error(data.message || 'Login gagal');
       }
 
+      // ✅ SIMPAN USER DARI DB (TERMAsuk FOTO)
+      localStorage.setItem('user', JSON.stringify(data.user));
+
+      // kirim ke state global
       onLogin(data.user);
     } catch (err: any) {
       setError(err.message);

@@ -15,7 +15,6 @@ interface DashboardLayoutProps {
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ user, onLogout }) => {
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
   const adminMenu = [
     { name: 'Dashboard', path: '/admin', icon: <LayoutDashboard size={20} /> },
     { name: 'Sellers', path: '/admin/sellers', icon: <Store size={20} /> },
@@ -38,6 +37,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ user, onLogout }) => 
   const profilePath =
     user.role === UserRole.SUPER_ADMIN ? '/admin/profile' : '/seller/profile';
 
+  const profileImage = user.foto ? `http://localhost:8000/storage/${user.foto}` : null;
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden">
 
@@ -149,7 +149,15 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ user, onLogout }) => 
                          hover:bg-slate-200 transition"
               title="Profil"
             >
-              <UserIcon size={18} />
+              {profileImage ? (
+                <img
+                  src={profileImage}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <UserIcon size={18} />
+              )}
             </Link>
           </div>
         </header>

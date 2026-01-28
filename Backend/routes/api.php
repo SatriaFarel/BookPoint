@@ -9,7 +9,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ChatController;
-use App\Http\Controllers\MessageController;
+use App\Http\Controllers\ProfileController;
 
 // SELLER
 Route::prefix('seller')->group(function () {
@@ -65,6 +65,10 @@ Route::get('/chats/{userId}', [ChatController::class, 'chats']);
 Route::get('/messages/{chatId}', [ChatController::class, 'messages']);
 Route::post('/messages', [ChatController::class, 'store']);
 Route::post('/chats', [ChatController::class, 'getOrCreateChat']);
+Route::post('/update-orders', [OrderController::class, 'autoUpdate']);
+
+Route::get('/user/profile/{id}', [ProfileController::class, 'show']);
+Route::post('/user/profile/update', [ProfileController::class, 'update']);
 
 
 

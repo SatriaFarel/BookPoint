@@ -20,6 +20,7 @@ const BuyerHome: React.FC<BuyerHomeProps> = ({ user, onLogout }) => {
   const API = 'http://127.0.0.1:8000/api/products';
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [seller, setSeller] = useState<Seller | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>('Semua');
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -79,6 +80,31 @@ const BuyerHome: React.FC<BuyerHomeProps> = ({ user, onLogout }) => {
     updateCartCount();
   }, []);
 
+  useEffect(() => {
+    const fetchSeller = async () => {
+      if (!selectedProduct) return;
+
+      try {
+        const res = await fetch(
+          `http://127.0.0.1:8000/api/seller/${selectedProduct.seller_id}`,
+          {
+            headers: {
+              Accept: 'application/json',
+            },
+          }
+        );
+
+        const data = await res.json();
+        setSeller(data);
+      } catch {
+        setSeller(null);
+      }
+    };
+
+    fetchSeller();
+  }, [selectedProduct]);
+
+
   /* ================= FILTER ================= */
   const filteredBooks = products.filter(b => {
     const matchSearch =
@@ -126,19 +152,37 @@ const BuyerHome: React.FC<BuyerHomeProps> = ({ user, onLogout }) => {
             </div>
 
             <div className="flex items-center gap-4">
+              {/* PROFILE */}
+              <Link
+                to="/buyer/profile"
+                className="flex items-center gap-1 text-slate-600 hover:text-slate-900"
+                title="Profil Saya"
+              >
+                <span className="text-xl">👤</span>
+              </Link>
+
+              {/* CART */}
               <Link to="/buyer/cart" className="relative p-2">
                 <span className="text-2xl">🛒</span>
                 {cartCount > 0 && (
-                  <span className="absolute top-0 right-0 bg-blue-600 text-white
-                    text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-bold">
+                  <span
+                    className="absolute top-0 right-0 bg-blue-600 text-white
+        text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-bold"
+                  >
                     {cartCount}
                   </span>
                 )}
               </Link>
-              <button onClick={onLogout} className="text-sm text-slate-500">
+
+              {/* LOGOUT */}
+              <button
+                onClick={onLogout}
+                className="text-sm text-slate-500 hover:text-red-500"
+              >
                 Logout
               </button>
             </div>
+
           </div>
         </div>
       </nav>
@@ -206,33 +250,97 @@ const BuyerHome: React.FC<BuyerHomeProps> = ({ user, onLogout }) => {
         </div>
       </main>
 
-      {/* ===== MODAL DETAIL ===== */}
+      {/* ================= MODAL DETAIL ================= */}
       {selectedProduct && (
         <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4"
           onClick={() => setSelectedProduct(null)}
         >
           <div
-            className="bg-white rounded-xl p-6 w-full max-w-md space-y-4"
+            className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] flex flex-col"
             onClick={e => e.stopPropagation()}
           >
-            <img
-              src={`http://127.0.0.1:8000/storage/${selectedProduct.image}`}
-              className="w-full h-64 object-cover rounded-lg"
-            />
+            {/* SCROLL AREA */}
+            <div className="p-6 overflow-y-auto space-y-4">
+              <img
+                src={`http://127.0.0.1:8000/storage/${selectedProduct.image}`}
+                className="w-full h-72 object-cover rounded-xl"
+              />
 
-            <h3 className="text-xl font-bold">{selectedProduct.name}</h3>
-            <p className="text-sm text-slate-500">{selectedProduct.category}</p>
+              <p className="text-xs uppercase font-bold text-blue-600">
+                {selectedProduct.category}
+              </p>
 
-            <p className="font-bold text-lg">
-              Rp {getFinalPrice(
-                selectedProduct.price,
-                selectedProduct.discount_percent
-              ).toLocaleString()}
-            </p>
+              <h2 className="text-2xl font-bold">{selectedProduct.name}</h2>
 
-            <div className="flex justify-end gap-3">
-              <Button variant="secondary" onClick={() => addToCart(selectedProduct)}>
+              <p className="text-xl font-bold text-red-600">
+                Rp {getFinalPrice(
+                  selectedProduct.price,
+                  selectedProduct.discount_percent
+                ).toLocaleString()}
+              </p>
+
+              <p className="text-sm">
+                Stok:{' '}
+                <span className={`font-bold ${selectedProduct.stock > 0
+                  ? 'text-green-600'
+                  : 'text-red-600'
+                  }`}>
+                  {selectedProduct.stock}
+                </span>
+              </p>
+
+              {/* DESKRIPSI */}
+              <div>
+                <p className="font-semibold mb-1">Deskripsi</p>
+                <p className="text-sm text-slate-600">
+                  {selectedProduct.description || '-'}
+                </p>
+              </div>
+
+              {/* SELLER CARD */}
+              {seller && (
+                <div className="pt-3 border-t">
+                  <p className="text-sm font-semibold mb-2">Penjual</p>
+
+                  <Link
+                    to={`/seller/${seller.id}`}
+                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50"
+                  >
+                    <div className="w-10 h-10 rounded-full overflow-hidden border">
+                      {seller.foto ? (
+                        <img
+                          src={`http://127.0.0.1:8000/storage/${seller.foto}`}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-slate-200 flex items-center justify-center">
+                          🏪
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <p className="font-bold text-sm">
+                        {seller.name}
+                      </p>
+                      <p className="text-xs text-slate-400">
+                        Lihat profil penjual →
+                      </p>
+                    </div>
+                  </Link>
+                </div>
+              )}
+
+            </div>
+
+            {/* ACTION (STICKY) */}
+            <div className="border-t p-4 flex justify-end gap-3">
+              <Button
+                variant="secondary"
+                onClick={() => addToCart(selectedProduct)}
+                disabled={selectedProduct.stock <= 0}
+              >
                 + Keranjang
               </Button>
               <Button onClick={() => setSelectedProduct(null)}>Tutup</Button>
@@ -240,6 +348,7 @@ const BuyerHome: React.FC<BuyerHomeProps> = ({ user, onLogout }) => {
           </div>
         </div>
       )}
+
     </div>
   );
 };

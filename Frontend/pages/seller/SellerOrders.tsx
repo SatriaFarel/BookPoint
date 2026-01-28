@@ -3,7 +3,7 @@ import { Badge } from '../../components/Badge';
 import { Button } from '../../components/Button';
 
 /* ================= TYPE ================= */
-type OrderStatus = 'diperiksa' | 'approved' | 'dikirim' | 'rejected';
+type OrderStatus = 'diperiksa' | 'disetujui' | 'dikirim' | 'ditolak' | 'selesai';
 
 type Order = {
   id: number;
@@ -34,6 +34,10 @@ const SellerOrders: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // ===== PAGINATION =====
+  const [page, setPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
+
   const [alert, setAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   /* ===== MODAL ===== */
@@ -49,11 +53,16 @@ const SellerOrders: React.FC = () => {
   };
 
   /* ================= FETCH ================= */
-  const fetchOrders = async () => {
+  const fetchOrders = async (pageNumber = 1) => {
     try {
-      const res = await fetch(`${API}/seller/orders/${seller.id}`);
+      const res = await fetch(
+        `${API}/seller/orders/${seller.id}?page=${pageNumber}`
+      );
       const data = await res.json();
-      setOrders(Array.isArray(data) ? data : []);
+
+      setOrders(data.data || []);
+      setPage(data.current_page);
+      setLastPage(data.last_page);
     } catch {
       showAlert('error', 'Gagal mengambil pesanan');
     } finally {
@@ -62,8 +71,25 @@ const SellerOrders: React.FC = () => {
   };
 
   useEffect(() => {
-    if (seller.id) fetchOrders();
-  }, []);
+    if (!seller.id) return;
+
+    // fetch awal data
+    fetchOrders();
+
+    // trigger auto update tiap 1 menit
+    const intervalId = setInterval(() => {
+      fetch('http://127.0.0.1:8000/api/update-orders', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+        },
+      }).catch(() => {
+        // diamkan saja, ini background task
+      });
+    }, 10000); // 10 detik
+
+    return () => clearInterval(intervalId);
+  }, [seller.id]);
 
   /* ================= ACTION ================= */
   const handleApprove = async (id: number) => {
@@ -76,7 +102,7 @@ const SellerOrders: React.FC = () => {
       if (!res.ok) return showAlert('error', data.message || 'Gagal menyetujui');
 
       showAlert('success', 'Pesanan disetujui, silakan input resi');
-      fetchOrders();
+      fetchOrders(page);
     } catch {
       showAlert('error', 'Server error');
     }
@@ -94,7 +120,7 @@ const SellerOrders: React.FC = () => {
       if (!res.ok) return showAlert('error', data.message || 'Gagal menolak');
 
       showAlert('error', 'Pesanan ditolak');
-      fetchOrders();
+      fetchOrders(page);
     } catch {
       showAlert('error', 'Server error');
     }
@@ -126,7 +152,7 @@ const SellerOrders: React.FC = () => {
 
       showAlert('success', 'Resi berhasil disimpan');
       setShowResiModal(false);
-      fetchOrders();
+      fetchOrders(page);
     } catch {
       showAlert('error', 'Server error');
     }
@@ -139,8 +165,10 @@ const SellerOrders: React.FC = () => {
 
       {/* ALERT */}
       {alert && (
-        <div className={`fixed top-20 right-5 z-50 px-4 py-3 rounded-xl text-white
-          ${alert.type === 'success' ? 'bg-emerald-500' : 'bg-red-500'}`}>
+        <div
+          className={`fixed top-20 right-5 z-50 px-4 py-3 rounded-xl text-white
+          ${alert.type === 'success' ? 'bg-emerald-500' : 'bg-red-500'}`}
+        >
           {alert.message}
         </div>
       )}
@@ -151,7 +179,7 @@ const SellerOrders: React.FC = () => {
         <table className="w-full text-left">
           <thead className="bg-slate-50 text-xs uppercase font-bold">
             <tr>
-              <th className="px-6 py-4">ID</th>
+              <th className="px-6 py-4">No</th>
               <th className="px-6 py-4">Pembeli</th>
               <th className="px-6 py-4">Produk</th>
               <th className="px-6 py-4">Total</th>
@@ -162,20 +190,27 @@ const SellerOrders: React.FC = () => {
           </thead>
 
           <tbody className="divide-y">
-            {orders.map(order => (
+            {orders.map((order, index) => (
               <tr key={order.id}>
-                <td className="px-6 py-4 text-xs font-mono">{order.id}</td>
+                <td className="px-6 py-4 text-xs font-mono">
+                  {(page - 1) * 10 + index + 1}
+                </td>
+
                 <td className="px-6 py-4">{order.buyer_name}</td>
+
                 <td className="px-6 py-4 text-sm">
                   {order.product_name} (x{order.quantity})
                 </td>
+
                 <td className="px-6 py-4 font-bold">
                   Rp {order.total_price.toLocaleString()}
                 </td>
 
                 <td className="px-6 py-4">
                   <button
-                    onClick={() => setPreviewProof(`http://127.0.0.1:8000/storage/${order.proof}`)}
+                    onClick={() =>
+                      setPreviewProof(`http://127.0.0.1:8000/storage/${order.proof}`)
+                    }
                     className="text-blue-600 text-xs font-bold"
                   >
                     Lihat
@@ -188,10 +223,10 @@ const SellerOrders: React.FC = () => {
                       order.status === 'approved'
                         ? 'warning'
                         : order.status === 'dikirim'
-                        ? 'success'
-                        : order.status === 'rejected'
-                        ? 'danger'
-                        : 'info'
+                          ? 'success'
+                          : order.status === 'rejected'
+                            ? 'danger'
+                            : 'info'
                     }
                   >
                     {order.status}
@@ -201,14 +236,16 @@ const SellerOrders: React.FC = () => {
                 <td className="px-6 py-4">
                   {order.status === 'diperiksa' && (
                     <div className="flex gap-2">
-                      <Button size="sm" onClick={() => handleApprove(order.id)}>Setujui</Button>
+                      <Button size="sm" onClick={() => handleApprove(order.id)}>
+                        Setujui
+                      </Button>
                       <Button size="sm" variant="danger" onClick={() => handleReject(order.id)}>
                         Tolak
                       </Button>
                     </div>
                   )}
 
-                  {order.status === 'disetujui' && (
+                  {order.status === 'approved' && (
                     <Button size="sm" onClick={() => openResiModal(order)}>
                       Input Resi
                     </Button>
@@ -220,7 +257,7 @@ const SellerOrders: React.FC = () => {
                     </span>
                   )}
 
-                  {order.status === 'ditolak' && (
+                  {order.status === 'rejected' && (
                     <span className="text-xs text-red-600 font-bold">
                       Refund diproses
                     </span>
@@ -232,10 +269,37 @@ const SellerOrders: React.FC = () => {
         </table>
       </div>
 
+      {/* ===== PAGINATION ===== */}
+      <div className="flex justify-end items-center gap-3">
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={page === 1}
+          onClick={() => fetchOrders(page - 1)}
+        >
+          Prev
+        </Button>
+
+        <span className="text-sm font-medium">
+          Page {page} / {lastPage}
+        </span>
+
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={page === lastPage}
+          onClick={() => fetchOrders(page + 1)}
+        >
+          Next
+        </Button>
+      </div>
+
       {/* ===== MODAL BUKTI ===== */}
       {previewProof && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-          onClick={() => setPreviewProof(null)}>
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+          onClick={() => setPreviewProof(null)}
+        >
           <div className="bg-white p-4 rounded-xl" onClick={e => e.stopPropagation()}>
             <img src={previewProof} className="max-h-[70vh] object-contain" />
           </div>
@@ -260,7 +324,9 @@ const SellerOrders: React.FC = () => {
             >
               <option value="">-- Pilih Ekspedisi --</option>
               {expeditions.map(e => (
-                <option key={e.code} value={e.code}>{e.name}</option>
+                <option key={e.code} value={e.code}>
+                  {e.name}
+                </option>
               ))}
             </select>
 

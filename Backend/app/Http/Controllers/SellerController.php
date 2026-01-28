@@ -69,7 +69,7 @@ class SellerController extends Controller
         // hanya order yang disetujui
         $orders = Order::with('items')
             ->where('seller_id', $sellerId)
-            ->where('status', 'disetujui')
+            ->whereIn('status', ['disetujui', 'dikirim', 'selesai'])
             ->get();
 
         /* ================= SUMMARY PER BULAN ================= */
@@ -111,6 +111,9 @@ class SellerController extends Controller
                     'name',
                     'email',
                     'alamat',
+                    'no_rekening',
+                    'foto',
+                    'qris',
                     'is_active',
                     'is_online'
                 )
@@ -128,6 +131,7 @@ class SellerController extends Controller
                 'name',
                 'email',
                 'alamat',
+                'foto',
                 'is_active',
                 'is_online',
                 'no_rekening',
@@ -144,27 +148,35 @@ class SellerController extends Controller
         return response()->json($seller);
     }
 
-
     // CREATE SELLER
     public function store(Request $request)
     {
         $request->validate([
-            'nik'      => 'required|string|unique:users,nik',
-            'name'     => 'required|string',
-            'email'    => 'required|email|unique:users,email',
-            'password' => 'required|min:6',
-            'alamat'   => 'required|string',
+            'nik'         => 'required|string|unique:users,nik',
+            'name'        => 'required|string',
+            'email'       => 'required|email|unique:users,email',
+            'password'    => 'required|min:6',
+            'alamat'      => 'required|string',
+            'no_rekening' => 'nullable|string',
+            'foto'        => 'nullable|image|max:2048',
+            'qris'        => 'nullable|image|max:2048',
         ]);
 
+        $foto = $request->file('foto')?->store('seller/foto', 'public');
+        $qris = $request->file('qris')?->store('seller/qris', 'public');
+
         $seller = User::create([
-            'role_id'   => 2,
-            'nik'       => $request->nik,
-            'name'      => $request->name,
-            'email'     => $request->email,
-            'password'  => Hash::make($request->password),
-            'alamat'    => $request->alamat,
-            'is_active' => true,
-            'is_online' => false,
+            'role_id'     => 2,
+            'nik'         => $request->nik,
+            'name'        => $request->name,
+            'email'       => $request->email,
+            'password'    => Hash::make($request->password),
+            'alamat'      => $request->alamat,
+            'no_rekening' => $request->no_rekening,
+            'foto'        => $foto,
+            'qris'        => $qris,
+            'is_active'   => true,
+            'is_online'   => false,
         ]);
 
         return response()->json($seller, 201);
@@ -179,7 +191,7 @@ class SellerController extends Controller
         ]);
 
         // ❌ CEGAH SALAH ALUR
-        if ($order->status !== 'approved') {
+        if ($order->status !== 'disetujui') {
             return response()->json([
                 'message' => 'Resi hanya bisa diinput untuk pesanan approved'
             ], 422);
@@ -190,6 +202,7 @@ class SellerController extends Controller
             'expedition' => $request->expedition,
             'resi'       => $request->resi,
             'status'     => 'dikirim',
+            'updated_at' => now(),
         ]);
 
         return response()->json([

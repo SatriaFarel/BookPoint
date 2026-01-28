@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('seller_id')->constrained('users');
             $table->foreignId('customer_id')->constrained('users');
             $table->integer('total_price');
-            $table->enum('status', ['diperiksa','disetujui', 'ditolak']);
+            $table->enum('status', ['diperiksa','disetujui', 'ditolak', 'dikirim', 'selesai'])->default('diperiksa');
             $table->string('expedition')->nullable();
             $table->string('resi')->nullable();
             $table->string('payment_method')->nullable();

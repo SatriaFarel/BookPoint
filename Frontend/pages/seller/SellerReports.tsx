@@ -139,7 +139,6 @@ const SellerReports: React.FC = () => {
               <th className="px-6 py-4">Tanggal</th>
               <th className="px-6 py-4">Total</th>
               <th className="px-6 py-4">Status</th>
-              <th className="px-6 py-4">Aksi</th>
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -151,19 +150,6 @@ const SellerReports: React.FC = () => {
                   Rp {row.total.toLocaleString()}
                 </td>
                 <td className="px-6 py-3">{row.status}</td>
-                <td className="px-6 py-3">
-                  <Button
-                    size="sm"
-                    onClick={() => {
-                      setSelectedOrder(row);
-                      setSelectedExpedition(null);
-                      setGeneratedResi('');
-                      setShowModal(true);
-                    }}
-                  >
-                    Input Resi
-                  </Button>
-                </td>
               </tr>
             ))}
           </tbody>

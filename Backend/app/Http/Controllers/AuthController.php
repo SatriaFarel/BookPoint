@@ -109,6 +109,7 @@ class AuthController extends Controller
                     3 => 'CUSTOMER',
                     default => 'CUSTOMER',
                 },
+                'foto' => $user->foto,
             ],
         ]);
     }
