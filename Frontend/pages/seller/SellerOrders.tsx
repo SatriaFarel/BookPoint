@@ -245,7 +245,7 @@ const SellerOrders: React.FC = () => {
                     </div>
                   )}
 
-                  {order.status === 'approved' && (
+                  {order.status === 'disetujui' && (
                     <Button size="sm" onClick={() => openResiModal(order)}>
                       Input Resi
                     </Button>
@@ -257,7 +257,7 @@ const SellerOrders: React.FC = () => {
                     </span>
                   )}
 
-                  {order.status === 'rejected' && (
+                  {order.status === 'ditolak' && (
                     <span className="text-xs text-red-600 font-bold">
                       Refund diproses
                     </span>

@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\Products;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;;
 use Carbon\Carbon;
 
 class SellerController extends Controller
@@ -162,8 +163,8 @@ class SellerController extends Controller
             'qris'        => 'nullable|image|max:2048',
         ]);
 
-        $foto = $request->file('foto')?->store('seller/foto', 'public');
-        $qris = $request->file('qris')?->store('seller/qris', 'public');
+        $foto = $request->file('foto')?->store('profile', 'public');
+        $qris = $request->file('qris')?->store('qris', 'public');
 
         $seller = User::create([
             'role_id'     => 2,
@@ -220,7 +221,18 @@ class SellerController extends Controller
             'name'   => 'required|string',
             'email'  => 'required|email|unique:users,email,' . $id,
             'alamat' => 'required|string',
+            'foto'  => 'nullable|image'
         ]);
+
+        // foto opsional
+        if ($request->hasFile('foto')) {
+            if ($seller->foto) {
+                Storage::disk('public')->delete($seller->foto);
+            }
+
+            $seller->foto = $request->file('foto')
+                ->store('profile', 'public');
+        }
 
         $seller->update([
             'name'   => $request->name,

@@ -32,6 +32,12 @@ const Profile: React.FC = () => {
   const [profileFoto, setProfileFoto] = useState<string | null>(null);
   const [qrisPreview, setQrisPreview] = useState<string | null>(null);
 
+  /* ===== ALERT FEEDBACK ===== */
+  const [alert, setAlert] = useState<{
+    type: 'success' | 'error';
+    message: string;
+  } | null>(null);
+
   /* ===== FETCH PROFILE ===== */
   useEffect(() => {
     const fetchProfile = async () => {
@@ -57,12 +63,15 @@ const Profile: React.FC = () => {
 
         setLoading(false);
       } catch {
-        alert('Gagal mengambil data profil');
+        setAlert({
+          type: 'error',
+          message: 'Gagal mengambil data profil',
+        });
       }
     };
 
     fetchProfile();
-  }, []);
+  }, [userId]);
 
   /* ===== HANDLER ===== */
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,6 +79,8 @@ const Profile: React.FC = () => {
   };
 
   const handleSave = async () => {
+    setAlert(null);
+
     const fd = new FormData();
     fd.append('id', userId);
     fd.append('name', form.name);
@@ -99,11 +110,26 @@ const Profile: React.FC = () => {
       );
 
       const data = await res.json();
+
+      if (!res.ok || data.success === false) {
+        setAlert({
+          type: 'error',
+          message: data.message || 'Gagal memperbarui profil',
+        });
+        return;
+      }
+
       localStorage.setItem('user', JSON.stringify(data.user));
 
-      alert('Profil berhasil diperbarui');
+      setAlert({
+        type: 'success',
+        message: data.message || 'Profil berhasil diperbarui',
+      });
     } catch {
-      alert('Server error');
+      setAlert({
+        type: 'error',
+        message: 'Server error, coba lagi nanti',
+      });
     }
   };
 
@@ -113,6 +139,19 @@ const Profile: React.FC = () => {
   return (
     <div className="max-w-xl mx-auto bg-white p-6 rounded-xl shadow space-y-6">
       <h2 className="text-xl font-bold">Profil Saya</h2>
+
+      {/* ALERT */}
+      {alert && (
+        <div
+          className={`p-3 rounded text-sm ${
+            alert.type === 'success'
+              ? 'bg-green-100 text-green-700'
+              : 'bg-red-100 text-red-700'
+          }`}
+        >
+          {alert.message}
+        </div>
+      )}
 
       {/* FOTO PROFIL */}
       <div className="flex items-center gap-4">

@@ -26,6 +26,8 @@ import Profile from './components/Profile';
 import ChatPage from './src/component/ChatPage';
 
 import { User, UserRole } from './types';
+import { echo } from './src/lib/echo'; // ⬅️ PENTING, harus import
+
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -34,6 +36,17 @@ const App: React.FC = () => {
     const saved = localStorage.getItem('user');
     if (saved) setUser(JSON.parse(saved));
   }, []);
+
+  function App() {
+  useEffect(() => {
+    echo.channel('test-channel')
+        .listen('TestEvent', (e) => {
+          console.log('🔥 Event received:', e);
+        });
+  }, []);
+
+  return <div>Realtime test</div>;
+}
 
   const handleLogin = (u: User) => {
     setUser(u);

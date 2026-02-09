@@ -15,7 +15,7 @@ const CustomerPage = () => {
 
   const showAlert = (type: 'success' | 'error', message: string) => {
     setAlert({ type, message });
-    setTimeout(() => setAlert(null), 3000);
+    setTimeout(() => setAlert(null), 10000);
   };
 
   const [showForm, setShowForm] = useState(false);
