@@ -32,8 +32,8 @@ const BuyerInvoice: React.FC = () => {
       <div className="max-w-3xl mx-auto bg-white rounded-2xl p-10">
         <div className="flex justify-between mb-12">
           <div>
-            <h1 className="text-3xl font-black">LUMINA.</h1>
-            <p className="text-sm text-slate-500">PT Lumina Media Group</p>
+            <h1 className="text-3xl font-black">BookStore.</h1>
+            <p className="text-sm text-slate-500">PT Book Media Group</p>
           </div>
           <div className="text-right">
             <h2 className="text-xl font-bold">Invoice</h2>

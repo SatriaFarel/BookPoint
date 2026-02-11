@@ -115,7 +115,7 @@ const BuyerTransactions: React.FC<BuyerTransactionsProps> = ({ user }) => {
       {/* NAVBAR */}
       <nav className="bg-white border-b sticky top-0 z-20 px-4 py-4">
         <div className="max-w-5xl mx-auto flex justify-between items-center">
-          <Link to="/buyer" className="text-xl font-bold">Lumina</Link>
+          <Link to="/buyer" className="text-xl font-bold">BookStore</Link>
           <div className="flex gap-6">
             <Link to="/buyer" className="text-slate-500">Store</Link>
             <Link to="/buyer/transactions" className="text-blue-600 font-bold">

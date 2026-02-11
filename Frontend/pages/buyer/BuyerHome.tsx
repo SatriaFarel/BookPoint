@@ -174,6 +174,15 @@ const BuyerHome: React.FC<BuyerHomeProps> = ({ user, onLogout }) => {
                 )}
               </Link>
 
+              {/* HELP */}
+              <Link
+                to="/buyer/help"
+                className="text-sm text-slate-500 hover:text-blue-600 font-medium"
+              >
+                Bantuan
+              </Link>
+
+
               {/* LOGOUT */}
               <button
                 onClick={onLogout}

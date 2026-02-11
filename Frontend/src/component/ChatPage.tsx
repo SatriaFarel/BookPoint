@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Send } from 'lucide-react';
-import { useParams } from 'react-router-dom';
+import { Send, ArrowLeft } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { echo } from '../lib/echo';
 
 /* ================= TYPE ================= */
@@ -9,7 +9,7 @@ type Chat = {
   partner: {
     id: number;
     name: string;
-    photo?: string | null;
+    foto?: string | null;
     is_active: boolean;
   };
 };
@@ -25,12 +25,13 @@ const API = 'http://127.0.0.1:8000/api';
 
 /* ================= HELPER ================= */
 const getPhotoUrl = (photo?: string | null) => {
-  if (!photo) return '/avatar-default.png'; // ganti kalau mau
+  if (!photo) return '/avatar-default.png';
   return `http://127.0.0.1:8000/storage/${photo}`;
 };
 
 const ChatPage: React.FC = () => {
   const { chatId: chatIdFromUrl } = useParams<{ chatId: string }>();
+  const navigate = useNavigate();
 
   let user: any = {};
   try {
@@ -109,7 +110,6 @@ const ChatPage: React.FC = () => {
       created_at: new Date().toISOString(),
     };
 
-    // optimistic UI
     setMessages(prev => [...prev, tempMessage]);
     setInput('');
 
@@ -191,6 +191,17 @@ const ChatPage: React.FC = () => {
           <>
             {/* HEADER */}
             <div className="p-4 border-b flex items-center gap-3">
+
+              {/* BACK BUTTON KHUSUS ROLE 3 */}
+              {user?.role === "CUSTOMER" && (
+                <button
+                  onClick={() => navigate(-1)}
+                  className="p-1 rounded hover:bg-slate-100"
+                >
+                  <ArrowLeft size={20} />
+                </button>
+              )}
+
               <div className="relative">
                 <img
                   src={getPhotoUrl(activeChat.partner.foto)}
@@ -216,20 +227,11 @@ const ChatPage: React.FC = () => {
 
             {/* MESSAGES */}
             <div className="flex-1 p-4 overflow-y-auto bg-slate-50">
-              {loadingMessages && (
-                <p className="text-sm text-slate-400">Memuat pesan...</p>
-              )}
-
-              {!loadingMessages && messages.length === 0 && (
-                <p className="text-sm text-slate-400">Belum ada pesan</p>
-              )}
-
               {messages.map(m => (
                 <div
                   key={m.id}
                   className={`mb-2 flex ${
-                    m.sender_id === user.id
-                      ? 'justify-end'
+                    m.sender_id === user == "CUSTOMER"           ? 'justify-end'
                       : 'justify-start'
                   }`}
                 >
@@ -244,7 +246,6 @@ const ChatPage: React.FC = () => {
                   </div>
                 </div>
               ))}
-
               <div ref={bottomRef} />
             </div>
 

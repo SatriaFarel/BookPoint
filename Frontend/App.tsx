@@ -22,6 +22,7 @@ import BuyerCart from './pages/buyer/BuyerCart';
 import BuyerTransactions from './pages/buyer/BuyerTransactions';
 import BuyerCheckout from './pages/buyer/BuyerCheckout';
 import BuyerInvoice from './pages/buyer/BuyerInvoice';
+import BuyerHelp from './pages/buyer/BuyerHelp';
 
 import DashboardLayout from './components/DashboardLayout';
 import Profile from './components/Profile';
@@ -147,6 +148,7 @@ const App: React.FC = () => {
         <Route path="/buyer/invoice/:id" element={<BuyerInvoice user={user} onLogout={handleLogout} />} />
         <Route path="/buyer/profile" element={<Profile user={user} />} />
         <Route path="/buyer/chat/:sellerId" element={<ChatPage />} />
+        <Route path="/buyer/help" element={<BuyerHelp/>}/>
 
 
         {/* FALLBACK */}
