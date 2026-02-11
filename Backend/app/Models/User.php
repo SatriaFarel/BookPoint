@@ -36,5 +36,11 @@ class User extends Authenticatable
         'is_online' => 'boolean',
         'is_active' => 'boolean',
     ];
+
+    public function products()
+    {
+        return $this->hasMany(Products::class, 'seller_id');
+    }
+
 }
 

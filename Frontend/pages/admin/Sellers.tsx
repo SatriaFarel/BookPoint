@@ -54,7 +54,7 @@ const SellerPage = () => {
     try {
       setDetailSeller(null);
       setShowDetail(true);
-      const res = await fetch(`${API}/${id}`, {
+      const res = await fetch(`${API}/detail/${id}`, {
         headers: { Accept: "application/json" },
       });
       const data = await res.json();

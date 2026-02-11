@@ -208,12 +208,20 @@ class OrderController extends Controller
             ->paginate(10);
 
         $orders->getCollection()->transform(function ($order) {
+
             return [
                 'id' => $order->id,
+
+                // ✅ WAJIB buat fitur chat
+                'buyer_id' => $order->customer->id,
                 'buyer_name' => $order->customer->name,
+
                 'product_name' => $order->items
-                    ->map(fn($i) => $i->product->name . ' (x' . $i->quantity . ')')
+                    ->map(function ($item) {
+                        return $item->product->name . ' (x' . $item->quantity . ')';
+                    })
                     ->join(', '),
+
                 'quantity' => $order->items->sum('quantity'),
                 'total_price' => $order->total_price,
                 'status' => $order->status,
@@ -225,6 +233,7 @@ class OrderController extends Controller
 
         return response()->json($orders);
     }
+
 
 
     public function approve($id)

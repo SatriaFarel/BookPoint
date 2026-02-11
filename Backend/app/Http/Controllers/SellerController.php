@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Order;
 use App\Models\Products;
+use App\Models\Order_Items;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;;
+
 use Carbon\Carbon;
 
 class SellerController extends Controller
@@ -253,14 +255,24 @@ class SellerController extends Controller
 
     public function detail($id)
     {
-        $seller = User::with(['products' => function ($q) {
-            $q->select('id', 'seller_id', 'name');
-        }])->findOrFail($id);
+        $seller = User::with([
+            'products:id,seller_id,name'
+        ])->findOrFail($id);
+
+        // ambil order seller yang valid
+        $orders = Order::where('seller_id', $id)
+            ->whereIn('status', ['dikirim', 'selesai'])
+            ->pluck('id');
+
+        // ambil order items terkait
+        $orderItems = Order_Items::whereIn('order_id', $orders)->get();
 
         $totalProduk = $seller->products->count();
-        $totalTerjual = $seller->products->sum('terjual');
-        $totalPendapatan = $seller->products->sum(function ($p) {
-            return $p->terjual * $p->harga;
+
+        $totalTerjual = $orderItems->sum('quantity');
+
+        $totalPendapatan = $orderItems->sum(function ($item) {
+            return $item->quantity * $item->price;
         });
 
         return response()->json([
@@ -274,5 +286,4 @@ class SellerController extends Controller
             'products' => $seller->products,
         ]);
     }
-
 }

@@ -9,6 +9,7 @@ import SuperAdminDashboard from './pages/admin/SuperAdminDashboard';
 import CategoriesPage from './pages/admin/Categories';
 import SellersPage from './pages/admin/Sellers';
 import CustomersPage from './pages/admin/Customers';
+import HelpPage from './pages/admin/Help';
 
 import SellerDashboard from './pages/seller/SellerDashboard';
 import SellerProducts from './pages/seller/SellerProducts';
@@ -110,6 +111,7 @@ const App: React.FC = () => {
           <Route path="customers" element={<CustomersPage />} />
           <Route path="categories" element={<CategoriesPage />} />
           <Route path="profile" element={<Profile user={user} />} />
+          <Route path="help" element={<HelpPage />} />
         </Route>
 
         {/* SELLER */}
@@ -127,7 +129,7 @@ const App: React.FC = () => {
           <Route path="reports" element={<SellerReports />} />
           <Route path="help" element={<SellerHelp />} />
           <Route path="profile" element={<Profile user={user} />} />
-          <Route path="chat" element={<ChatPage />} />
+          <Route path="chat/:chatId?" element={<ChatPage />} />
         </Route>
 
         {/* BUYER */}

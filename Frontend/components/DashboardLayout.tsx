@@ -20,6 +20,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ user, onLogout }) => 
     { name: 'Sellers', path: '/admin/sellers', icon: <Store size={20} /> },
     { name: 'Customers', path: '/admin/customers', icon: <Users size={20} /> },
     { name: 'Kategori', path: '/admin/categories', icon: <Tags size={20} /> },
+    { name: 'Help', path: '/admin/help', icon: <HelpCircle size={20} /> },
   ];
 
   const sellerMenu = [

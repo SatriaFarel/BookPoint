@@ -149,7 +149,7 @@ class AuthController extends Controller
         if (!$user) {
             return response()->json([
                 'success' => true,
-                'message' => 'Jika email terdaftar, OTP akan dikirim'
+                'message' => 'Email tidak ditemukan'
             ]);
         }
 
