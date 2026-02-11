@@ -1,6 +1,5 @@
 *.log
-.DS_Store
-.env
+.DS_Storephp
 .env.backup
 .env.production
 .phpactor.json
@@ -15,7 +14,6 @@
 /node_modules
 /public/build
 /public/hot
-/public/storage
 /storage/*.key
 /storage/pail
 /vendor

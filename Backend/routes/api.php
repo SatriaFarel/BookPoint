@@ -15,6 +15,8 @@ use App\Http\Controllers\ProfileController;
 Route::prefix('seller')->group(function () {
     Route::get('/', [SellerController::class, 'index']);
     Route::get('/{id}', [SellerController::class, 'show']);
+    Route::get('/detail/{id}', [SellerController::class, 'detail']);
+
 
     Route::get('/dashboard/{sellerId}', [SellerController::class, 'dashboard']);
     Route::get('/orders/{seller_id}', [OrderController::class, 'sellerOrders']);
@@ -59,6 +61,7 @@ Route::prefix('orders')->group(function () {
     Route::post('/', [OrderController::class, 'store']);
     Route::put('/{id}', [OrderController::class, 'update']);
     Route::delete('/{id}', [OrderController::class, 'destroy']);
+    Route::get('/{id}/confirm', [OrderController::class, 'confirm']);
 });
 
 Route::get('/chats/{userId}', [ChatController::class, 'chats']);
@@ -70,8 +73,9 @@ Route::post('/update-orders', [OrderController::class, 'autoUpdate']);
 Route::get('/user/profile/{id}', [ProfileController::class, 'show']);
 Route::post('/user/profile/update', [ProfileController::class, 'update']);
 
-
-
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/logout', [AuthController::class, 'logout']);
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+

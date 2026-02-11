@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Button } from './Button';
 
 const Profile: React.FC = () => {
-  /* ===== AUTH MINIMAL ===== */
+  /* ===== AUTH ===== */
   const authRaw = localStorage.getItem('user');
   const auth = authRaw ? JSON.parse(authRaw) : null;
 
@@ -32,7 +32,6 @@ const Profile: React.FC = () => {
   const [profileFoto, setProfileFoto] = useState<string | null>(null);
   const [qrisPreview, setQrisPreview] = useState<string | null>(null);
 
-  /* ===== ALERT FEEDBACK ===== */
   const [alert, setAlert] = useState<{
     type: 'success' | 'error';
     message: string;
@@ -63,10 +62,7 @@ const Profile: React.FC = () => {
 
         setLoading(false);
       } catch {
-        setAlert({
-          type: 'error',
-          message: 'Gagal mengambil data profil',
-        });
+        setAlert({ type: 'error', message: 'Gagal mengambil data profil' });
       }
     };
 
@@ -74,7 +70,9 @@ const Profile: React.FC = () => {
   }, [userId]);
 
   /* ===== HANDLER ===== */
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
@@ -119,7 +117,15 @@ const Profile: React.FC = () => {
         return;
       }
 
-      localStorage.setItem('user', JSON.stringify(data.user));
+      // ⬅️ INI KUNCI: JANGAN TIMPA AUTH
+      const oldUser = JSON.parse(localStorage.getItem('user')!);
+      localStorage.setItem(
+        'user',
+        JSON.stringify({
+          ...oldUser,
+          ...data.user,
+        })
+      );
 
       setAlert({
         type: 'success',
@@ -140,7 +146,6 @@ const Profile: React.FC = () => {
     <div className="max-w-xl mx-auto bg-white p-6 rounded-xl shadow space-y-6">
       <h2 className="text-xl font-bold">Profil Saya</h2>
 
-      {/* ALERT */}
       {alert && (
         <div
           className={`p-3 rounded text-sm ${
@@ -153,13 +158,12 @@ const Profile: React.FC = () => {
         </div>
       )}
 
-      {/* FOTO PROFIL */}
+      {/* FOTO */}
       <div className="flex items-center gap-4">
         <div className="w-24 h-24 rounded-full overflow-hidden border">
           {profileFoto ? (
             <img
               src={`http://127.0.0.1:8000/storage/${profileFoto}`}
-              alt="Foto Profil"
               className="w-full h-full object-cover"
             />
           ) : (
@@ -182,30 +186,25 @@ const Profile: React.FC = () => {
 
       {/* FORM */}
       <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium">Nama</label>
+        <Field label="Nama">
           <input
             name="name"
             value={form.name}
             onChange={handleChange}
             className="w-full border rounded p-2"
           />
-        </div>
+        </Field>
 
-        <div>
-          <label className="block text-sm font-medium">Email</label>
+        <Field label="Email">
           <input
             name="email"
             value={form.email}
             onChange={handleChange}
             className="w-full border rounded p-2"
           />
-        </div>
+        </Field>
 
-        <div>
-          <label className="block text-sm font-medium">
-            Password Baru
-          </label>
+        <Field label="Password Baru">
           <input
             type="password"
             name="password"
@@ -214,61 +213,49 @@ const Profile: React.FC = () => {
             placeholder="Kosongkan jika tidak diubah"
             className="w-full border rounded p-2"
           />
-        </div>
+        </Field>
 
         {(isSeller || isCustomer) && (
           <>
-            <div>
-              <label className="block text-sm font-medium">NIK</label>
+            <Field label="NIK">
               <input
                 name="nik"
                 value={form.nik}
                 onChange={handleChange}
                 className="w-full border rounded p-2"
               />
-            </div>
+            </Field>
 
-            <div>
-              <label className="block text-sm font-medium">Alamat</label>
+            <Field label="Alamat">
               <input
                 name="alamat"
                 value={form.alamat}
                 onChange={handleChange}
                 className="w-full border rounded p-2"
               />
-            </div>
+            </Field>
           </>
         )}
 
         {isSeller && (
           <>
-            <div>
-              <label className="block text-sm font-medium">
-                No Rekening
-              </label>
+            <Field label="No Rekening">
               <input
                 name="no_rekening"
                 value={form.no_rekening}
                 onChange={handleChange}
                 className="w-full border rounded p-2"
               />
-            </div>
+            </Field>
 
             <div>
-              <label className="block text-sm font-medium mb-2">
-                QRIS
-              </label>
-
+              <label className="block text-sm font-medium mb-2">QRIS</label>
               {qrisPreview && (
-                <div className="mb-2 w-40 border rounded p-2">
-                  <img
-                    src={`http://127.0.0.1:8000/storage/${qrisPreview}`}
-                    alt="QRIS"
-                    className="w-full object-contain"
-                  />
-                </div>
+                <img
+                  src={`http://127.0.0.1:8000/storage/${qrisPreview}`}
+                  className="w-40 mb-2 border rounded"
+                />
               )}
-
               <input
                 type="file"
                 onChange={(e) => setQris(e.target.files?.[0] || null)}
@@ -282,5 +269,16 @@ const Profile: React.FC = () => {
     </div>
   );
 };
+
+/* ===== HELPER ===== */
+const Field: React.FC<{ label: string; children: React.ReactNode }> = ({
+  label,
+  children,
+}) => (
+  <div>
+    <label className="block text-sm font-medium mb-1">{label}</label>
+    {children}
+  </div>
+);
 
 export default Profile;

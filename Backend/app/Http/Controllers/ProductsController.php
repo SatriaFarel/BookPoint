@@ -100,6 +100,17 @@ class ProductsController extends Controller
     {
         $product = Products::findOrFail($id);
 
+        if (! $product) {
+            return response()->json([
+                'message' => 'Produk tidak ditemukan'
+            ], 404);
+        }
+        if($product->stock > 0){
+            return response()->json([
+                'message' => 'Produk masih memiliki stok, tidak dapat dihapus'
+            ], 400);
+        }
+
         // hapus image kalau ada
         if ($product->image && Storage::disk('public')->exists($product->image)) {
             Storage::disk('public')->delete($product->image);

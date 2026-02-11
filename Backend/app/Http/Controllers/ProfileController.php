@@ -25,21 +25,20 @@ class ProfileController extends Controller
     public function update(Request $request)
     {
         try {
-            $user = User::findOrFail($request->id);
+           $user = User::findOrFail($request->id);
 
-            /* ===== VALIDASI ===== */
             $rules = [
-                'name'  => 'required',
-                'email' => 'required|email|unique:users,email,' . $user->id,
+            'name' => 'required',
+            'email' => 'required|email|unique:users,email,' . $user->id,
             ];
 
-            if ($user->role_id !== '1') {
-                $rules['nik'] = 'required';
-                $rules['alamat'] = 'required';
+            if (in_array($user->role_id, [2, 3])) {
+            $rules['nik'] = 'required';
+            $rules['alamat'] = 'required';
             }
 
-            if ($user->role_id === '2') {
-                $rules['no_rekening'] = 'required';
+            if ($user->role_id == 2) {
+            $rules['no_rekening'] = 'required';
             }
 
             $request->validate($rules);
@@ -59,12 +58,12 @@ class ProfileController extends Controller
                 $user->foto = $request->file('foto')->store('profile', 'public');
             }
 
-            if ($user->role_id !== '1') {
+            if ($user->role_id === 3) {
                 $user->nik = $request->nik;
                 $user->alamat = $request->alamat;
             }
 
-            if ($user->role_id === '2') {
+            if ($user->role_id === 2) {
                 $user->no_rekening = $request->no_rekening;
 
                 if ($request->hasFile('qris')) {

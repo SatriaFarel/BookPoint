@@ -104,6 +104,12 @@ const Login: React.FC<LoginProps> = ({ onLogin, user }) => {
             required
           />
 
+          <div className="text-right">
+            <Link to="/forgot-password" className="text-sm text-blue-600 hover:underline">
+              Lupa password?
+            </Link>
+          </div>
+
           <Button type="submit" fullWidth size="lg" disabled={loading}>
             {loading ? 'Loading...' : 'Login'}
           </Button>

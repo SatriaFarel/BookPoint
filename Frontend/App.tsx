@@ -3,6 +3,7 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
 
 import SuperAdminDashboard from './pages/admin/SuperAdminDashboard';
 import CategoriesPage from './pages/admin/Categories';
@@ -93,6 +94,7 @@ const App: React.FC = () => {
         {/* AUTH */}
         <Route path="/login" element={<Login onLogin={handleLogin} user={user} />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
 
         {/* ADMIN */}
         <Route

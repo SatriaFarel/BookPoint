@@ -250,4 +250,29 @@ class SellerController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    public function detail($id)
+    {
+        $seller = User::with(['products' => function ($q) {
+            $q->select('id', 'seller_id', 'name');
+        }])->findOrFail($id);
+
+        $totalProduk = $seller->products->count();
+        $totalTerjual = $seller->products->sum('terjual');
+        $totalPendapatan = $seller->products->sum(function ($p) {
+            return $p->terjual * $p->harga;
+        });
+
+        return response()->json([
+            'id' => $seller->id,
+            'name' => $seller->name,
+            'email' => $seller->email,
+            'foto' => $seller->foto,
+            'total_produk' => $totalProduk,
+            'total_terjual' => $totalTerjual,
+            'total_pendapatan' => $totalPendapatan,
+            'products' => $seller->products,
+        ]);
+    }
+
 }

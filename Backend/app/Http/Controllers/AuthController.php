@@ -6,6 +6,9 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class AuthController extends Controller
 {
@@ -129,6 +132,94 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Logout sukses'
+        ]);
+    }
+
+
+    /* ================= FORGOT PASSWORD ================= */
+    public function forgotPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email'
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        // ⛔ jangan bocorkan apakah email ada / tidak
+        if (!$user) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Jika email terdaftar, OTP akan dikirim'
+            ]);
+        }
+
+        // OTP aman
+        $otp = random_int(100000, 999999);
+
+        $user->update([
+            'otp' => $otp,
+            'otp_expired' => Carbon::now()->addMinutes(5),
+        ]);
+
+        // KIRIM EMAIL BENERAN
+        Mail::raw(
+            "Kode OTP reset password kamu: $otp\n\nBerlaku 5 menit.",
+            function ($message) use ($user) {
+                $message->to($user->email)
+                    ->subject('OTP Reset Password');
+            }
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'OTP berhasil dikirim ke email'
+        ]);
+    }
+
+    /* ================= RESET PASSWORD ================= */
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'email'    => 'required|email',
+            'otp'      => 'required',
+            'password' => 'required|min:6|confirmed'
+        ]);
+
+        $user = User::where('email', $request->email)
+            ->where('otp', $request->otp)
+            ->first();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'OTP tidak valid'
+            ], 400);
+        }
+
+        // cek expired
+        if (
+            !$user->otp_expired ||
+            Carbon::now()->greaterThan($user->otp_expired)
+        ) {
+            $user->update([
+                'otp' => null,
+                'otp_expired' => null
+            ]);
+
+            return response()->json([
+                'message' => 'OTP sudah kadaluarsa'
+            ], 400);
+        }
+
+        // update password
+        $user->update([
+            'password' => Hash::make($request->password),
+            'otp' => null,
+            'otp_expired' => null
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password berhasil direset'
         ]);
     }
 }

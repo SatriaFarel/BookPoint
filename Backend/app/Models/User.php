@@ -23,6 +23,8 @@ class User extends Authenticatable
         'qris',
         'is_online',
         'is_active',
+        'otp',
+        'otp_expired',
     ];
 
     protected $hidden = [

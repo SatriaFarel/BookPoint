@@ -30,6 +30,8 @@ return new class extends Migration
             $table->string('qris')->nullable();
             $table->boolean('is_online')->default(false);
             $table->boolean('is_active')->default(true);
+            $table->string('otp')->nullable();
+            $table->timestamp('otp_expired')->nullable();
             $table->timestamps();
         });
 

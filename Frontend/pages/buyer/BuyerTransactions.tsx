@@ -20,6 +20,10 @@ type Order = {
   seller_id: number;
   resi?: string | null;
   items: OrderItem[];
+
+  // TAMBAHAN UNTUK REFUND
+  seller_address?: string;
+  refund_duration?: string;
 };
 
 const BuyerTransactions: React.FC<BuyerTransactionsProps> = ({ user }) => {
@@ -40,19 +44,19 @@ const BuyerTransactions: React.FC<BuyerTransactionsProps> = ({ user }) => {
         return 'info';
       case OrderStatus.REJECTED:
         return 'danger';
+      case OrderStatus.DONE:
+        return 'primary';
       default:
         return 'secondary';
     }
   };
 
-  /* ===== LOAD TRANSACTIONS (SEMUA STATUS) ===== */
+  /* ===== LOAD TRANSACTIONS ===== */
   const fetchOrders = async () => {
     try {
-      const res = await fetch(`${API}/orders?customer_id=${user.id}`,
-        {
-          method: 'GET',
-            headers: { 'Content-Type': 'application/json' }
-        }
+      const res = await fetch(
+        `${API}/orders?customer_id=${user.id}`,
+        { headers: { 'Content-Type': 'application/json' } }
       );
       const data = await res.json();
       setOrders(Array.isArray(data) ? data : []);
@@ -67,6 +71,23 @@ const BuyerTransactions: React.FC<BuyerTransactionsProps> = ({ user }) => {
     fetchOrders();
   }, []);
 
+  /* ===== KONFIRMASI TERIMA ===== */
+  const confirmReceived = async (orderId: number) => {
+    if (!confirm('Yakin pesanan sudah diterima?')) return;
+
+    try {
+      const res = await fetch(`${API}/orders/${orderId}/confirm`, {
+        method: 'POST',
+        headers: { Accept: 'application/json' },
+      });
+
+      if (!res.ok) throw new Error();
+      fetchOrders();
+    } catch {
+      alert('Gagal konfirmasi pesanan');
+    }
+  };
+
   /* ===== START CHAT ===== */
   const startChat = async (sellerId: number) => {
     try {
@@ -79,8 +100,7 @@ const BuyerTransactions: React.FC<BuyerTransactionsProps> = ({ user }) => {
         }),
       });
 
-      if (!res.ok) throw new Error('Chat gagal dibuat');
-
+      if (!res.ok) throw new Error();
       const chat = await res.json();
       navigate(`/buyer/chat/${chat.id}`);
     } catch {
@@ -88,9 +108,7 @@ const BuyerTransactions: React.FC<BuyerTransactionsProps> = ({ user }) => {
     }
   };
 
-  if (loading) {
-    return <p className="p-6 text-slate-500">Loading...</p>;
-  }
+  if (loading) return <p className="p-6 text-slate-500">Loading...</p>;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -100,10 +118,7 @@ const BuyerTransactions: React.FC<BuyerTransactionsProps> = ({ user }) => {
           <Link to="/buyer" className="text-xl font-bold">Lumina</Link>
           <div className="flex gap-6">
             <Link to="/buyer" className="text-slate-500">Store</Link>
-            <Link
-              to="/buyer/transactions"
-              className="text-blue-600 font-bold"
-            >
+            <Link to="/buyer/transactions" className="text-blue-600 font-bold">
               History
             </Link>
           </div>
@@ -122,32 +137,29 @@ const BuyerTransactions: React.FC<BuyerTransactionsProps> = ({ user }) => {
           {orders.map(order => (
             <div
               key={order.id}
-              className="bg-white p-6 rounded-xl border flex flex-col md:flex-row justify-between gap-6"
+              className="bg-white p-6 rounded-xl border space-y-4"
             >
               {/* INFO */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-3">
-                  <span className="font-mono text-sm text-slate-400">
-                    #{order.id}
-                  </span>
+              <div className="flex justify-between items-start">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    <span className="font-mono text-sm text-slate-400">
+                      #{order.id}
+                    </span>
+                    <Badge variant={getBadgeVariant(order.status)}>
+                      {order.status}
+                    </Badge>
+                  </div>
 
-                  <Badge variant={getBadgeVariant(order.status)}>
-                    {order.status}
-                  </Badge>
+                  <h3 className="font-bold">
+                    {order.items.map(i => i.name).join(', ')}
+                  </h3>
+
+                  <p className="text-xs text-slate-400">
+                    {order.created_at} • Rp {order.total_price.toLocaleString()}
+                  </p>
                 </div>
 
-                <h3 className="font-bold">
-                  {order.items.map(i => i.name).join(', ')}
-                </h3>
-
-                <p className="text-xs text-slate-400">
-                  {order.created_at} • Rp{' '}
-                  {order.total_price.toLocaleString()}
-                </p>
-              </div>
-
-              {/* ACTION */}
-              <div className="flex flex-wrap items-center gap-3">
                 <Button
                   size="sm"
                   variant="secondary"
@@ -155,7 +167,39 @@ const BuyerTransactions: React.FC<BuyerTransactionsProps> = ({ user }) => {
                 >
                   Chat Penjual
                 </Button>
+              </div>
 
+              {/* KONDISIONAL STATUS */}
+              {order.status === OrderStatus.SHIPPED && (
+                <div className="bg-blue-50 p-4 rounded-xl flex justify-between items-center">
+                  <span className="text-sm text-blue-700">
+                    Pesanan sudah dikirim. Silakan konfirmasi jika sudah diterima.
+                  </span>
+                  <Button
+                    size="sm"
+                    onClick={() => confirmReceived(order.id)}
+                  >
+                    Konfirmasi Terima
+                  </Button>
+                </div>
+              )}
+
+              {order.status === OrderStatus.REJECTED && (
+                <div className="bg-red-50 p-4 rounded-xl space-y-2">
+                  <p className="text-sm text-red-700 font-medium">
+                    Pesanan ditolak. Silakan lakukan refund ke toko.
+                  </p>
+                  <p className="text-sm">
+                    <b>Alamat Toko:</b> {order.seller_address || 'Tidak tersedia'}
+                  </p>
+                  <p className="text-sm">
+                    <b>Estimasi Refund:</b>{' '}
+                    {order.refund_duration || '3–5 hari kerja'}
+                  </p>
+                </div>
+              )}
+
+              <div className="flex justify-end">
                 <Link to={`/buyer/invoice/${order.id}`}>
                   <Button size="sm" variant="outline">
                     Invoice

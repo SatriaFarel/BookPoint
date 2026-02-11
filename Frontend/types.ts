@@ -14,8 +14,10 @@ export enum OrderStatus {
   PENDING = 'diperiksa',
   APPROVED = 'disetujui',
   REJECTED = 'ditolak',
-  SHIPPED = 'dikirim'
+  SHIPPED = 'dikirim',
+  DONE = 'selesai',
 }
+
 
 export interface User {
   id: string;
