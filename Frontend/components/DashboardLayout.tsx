@@ -26,6 +26,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ user, onLogout }) => 
   const sellerMenu = [
     { name: 'Dashboard', path: '/seller', icon: <LayoutDashboard size={20} /> },
     { name: 'Produk', path: '/seller/products', icon: <BookOpen size={20} /> },
+    { name: 'Daftar Seller', path: '/seller/list', icon: <Users size={20} /> },
     { name: 'Pesanan', path: '/seller/orders', icon: <ShoppingBag size={20} /> },
     { name: 'Laporan', path: '/seller/reports', icon: <BarChart3 size={20} /> },
     { name: 'Chat', path: '/seller/chat', icon: <MessageCircle size={20} /> },

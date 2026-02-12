@@ -13,11 +13,12 @@ use App\Http\Controllers\ProfileController;
 
 // SELLER
 Route::prefix('seller')->group(function () {
+    Route::get('/list', [SellerController::class, 'publicSellers']);
+
     Route::get('/', [SellerController::class, 'index']);
     Route::get('/{id}', [SellerController::class, 'show']);
     Route::get('/detail/{id}', [SellerController::class, 'detail']);
-
-
+   
     Route::get('/dashboard/{sellerId}', [SellerController::class, 'dashboard']);
     Route::get('/orders/{seller_id}', [OrderController::class, 'sellerOrders']);
     Route::patch('/orders/{id}/approve', [OrderController::class, 'approve']);

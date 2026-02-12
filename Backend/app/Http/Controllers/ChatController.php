@@ -14,25 +14,27 @@ class ChatController extends Controller
     {
         $chats = Chat::where('user_1', $userId)
             ->orWhere('user_2', $userId)
-            ->latest()
+            ->withMax('messages', 'created_at')
+            ->orderByDesc('messages_max_created_at')
             ->get();
 
-        return response()->json(
-            $chats->map(function ($chat) use ($userId) {
+        $result = $chats->map(function ($chat) use ($userId) {
 
-                $partnerId = $chat->user_1 == $userId
-                    ? $chat->user_2
-                    : $chat->user_1;
+            $partnerId = $chat->user_1 == $userId
+                ? $chat->user_2
+                : $chat->user_1;
 
-                $partner = User::select('id','name','foto')
-                    ->find($partnerId);
+            $partner = User::select('id','name','foto','is_online')
+                ->find($partnerId);
 
-                return [
-                    'id' => $chat->id,
-                    'partner' => $partner,
-                ];
-            })
-        );
+            return [
+                'id' => $chat->id,
+                'partner' => $partner,
+                'last_message_at' => $chat->messages_max_created_at,
+            ];
+        });
+
+        return response()->json($result);
     }
 
     /* ================= GET MESSAGES ================= */
@@ -54,6 +56,14 @@ class ChatController extends Controller
             'message'   => 'required|string'
         ]);
 
+        $chat = Chat::find($request->chat_id);
+
+        if (!$chat) {
+            return response()->json([
+                'message' => 'Chat tidak ditemukan'
+            ], 404);
+        }
+
         $message = Message::create([
             'chat_id'   => $request->chat_id,
             'sender_id' => $request->sender_id,
@@ -74,7 +84,6 @@ class ChatController extends Controller
         $buyerId  = $request->buyer_id;
         $sellerId = $request->seller_id;
 
-        // Hindari chat dengan diri sendiri
         if ($buyerId == $sellerId) {
             return response()->json([
                 'message' => 'Tidak bisa membuat chat dengan diri sendiri'
@@ -98,6 +107,8 @@ class ChatController extends Controller
             ]);
         }
 
-        return response()->json($chat);
+        return response()->json([
+            'id' => $chat->id
+        ]);
     }
 }

@@ -10,7 +10,7 @@ type Chat = {
     id: number;
     name: string;
     foto?: string | null;
-    is_active: boolean;
+    is_online: boolean;
   };
 };
 
@@ -160,7 +160,7 @@ const ChatPage: React.FC = () => {
                 />
                 <span
                   className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white
-                    ${chat.partner.is_active ? 'bg-green-500' : 'bg-slate-400'}
+                    ${chat.partner.is_online ? 'bg-green-500' : 'bg-slate-400'}
                   `}
                 />
               </div>
@@ -170,7 +170,7 @@ const ChatPage: React.FC = () => {
                   {chat.partner.name}
                 </p>
                 <p className="text-xs text-slate-500">
-                  {chat.partner.is_active ? 'Online' : 'Offline'}
+                  {chat.partner.is_online ? 'Online' : 'Offline'}
                 </p>
               </div>
             </div>
@@ -210,7 +210,7 @@ const ChatPage: React.FC = () => {
                 />
                 <span
                   className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white
-                    ${activeChat.partner.is_active ? 'bg-green-500' : 'bg-slate-400'}
+                    ${activeChat.partner.is_online ? 'bg-green-500' : 'bg-slate-400'}
                   `}
                 />
               </div>
@@ -220,7 +220,7 @@ const ChatPage: React.FC = () => {
                   {activeChat.partner.name}
                 </p>
                 <p className="text-xs text-slate-500">
-                  {activeChat.partner.is_active ? 'Online' : 'Offline'}
+                  {activeChat.partner.is_online ? 'Online' : 'Offline'}
                 </p>
               </div>
             </div>
@@ -231,8 +231,7 @@ const ChatPage: React.FC = () => {
                 <div
                   key={m.id}
                   className={`mb-2 flex ${
-                    m.sender_id === user == "CUSTOMER"           ? 'justify-end'
-                      : 'justify-start'
+                    m.sender_id === user?.id ? 'justify-end' : 'justify-start'
                   }`}
                 >
                   <div

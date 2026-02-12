@@ -33,6 +33,7 @@ export interface Seller {
   name: string;
   email: string;
   alamat: string;
+  password?: string; 
   no_rekening?: string;
   foto?: string;
   qris?: string;

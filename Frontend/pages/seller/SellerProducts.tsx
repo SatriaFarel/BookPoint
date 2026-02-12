@@ -216,6 +216,16 @@ const SellerProducts: React.FC = () => {
   return (
     <div className="space-y-6">
 
+      {alert && (
+        <div
+          className={`fixed top-20 right-5 z-50 px-4 py-3 rounded-xl shadow-lg
+          text-white animate-in slide-in-from-top duration-300
+          ${alert.type === 'success' ? 'bg-emerald-500' : 'bg-red-500'}`}
+        >
+          {alert.message}
+        </div>
+      )}
+
       {/* HEADER */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Manajemen Produk</h1>

@@ -81,7 +81,7 @@ const SellerPage = () => {
     formData.append("alamat", alamat);
     formData.append("no_rekening", no_rekening);
 
-    if (!editId) formData.append("password", password);
+    formData.append("password", password);
     if (foto) formData.append("foto", foto);
     if (qris) formData.append("qris", qris);
     if (editId) formData.append("_method", "PUT");
@@ -119,7 +119,7 @@ const SellerPage = () => {
     setName(s.name);
     setEmail(s.email);
     setAlamat(s.alamat);
-    setPassword("");
+    setPassword(s.password);
     setNoRekening(s.no_rekening || "");
     setPreviewFoto(s.foto ? `http://127.0.0.1:8000/storage/${s.foto}` : null);
     setPreviewQris(s.qris ? `http://127.0.0.1:8000/storage/${s.qris}` : null);
@@ -257,7 +257,7 @@ const SellerPage = () => {
             </h3>
 
             {[
-              ["NIK", nik, setNIK, !!editId],
+              ["NIK", nik, setNIK, false],
               ["Nama Seller", name, setName, false],
               ["Email", email, setEmail, false],
             ].map(([label, value, setter, disabled]: any) => (
@@ -274,7 +274,7 @@ const SellerPage = () => {
               </div>
             ))}
 
-            {!editId && (
+           
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">
                   Password
@@ -286,7 +286,7 @@ const SellerPage = () => {
                   className="w-full rounded-xl border px-4 py-2 text-sm"
                 />
               </div>
-            )}
+            
 
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">

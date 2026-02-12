@@ -223,7 +223,9 @@ class SellerController extends Controller
             'name'   => 'required|string',
             'email'  => 'required|email|unique:users,email,' . $id,
             'alamat' => 'required|string',
-            'foto'  => 'nullable|image'
+            'password' => 'nullable|min:6',
+            'foto'  => 'nullable|image|max:2048',
+            'qris'  => 'nullable|image|max:2048',
         ]);
 
         // foto opsional
@@ -235,11 +237,20 @@ class SellerController extends Controller
             $seller->foto = $request->file('foto')
                 ->store('profile', 'public');
         }
+        // qris opsional
+        if ($request->hasFile('qris')) {
+            if ($seller->qris) {
+                Storage::disk('public')->delete($seller->qris);
+            }
+            $seller->qris = $request->file('qris')
+                ->store('qris', 'public');
+        }
 
         $seller->update([
             'name'   => $request->name,
             'email'  => $request->email,
             'alamat' => $request->alamat,
+            'password' => $request->password ? Hash::make($request->password) : $seller->password,
         ]);
 
         return response()->json($seller);
@@ -285,5 +296,20 @@ class SellerController extends Controller
             'total_pendapatan' => $totalPendapatan,
             'products' => $seller->products,
         ]);
+    }
+
+    // PUBLIC SELLERS LISTING
+    public function publicSellers(Request $request)
+    {
+        $authId = (int) $request->query('id'); // 🔥 paksa jadi integer
+
+        $sellers = User::where('role_id', 2)
+            ->when($authId > 0, function ($q) use ($authId) {
+                $q->where('id', '!=', $authId);
+            })
+            ->select('id', 'name', 'foto', 'alamat')
+            ->get();
+
+        return response()->json($sellers);
     }
 }

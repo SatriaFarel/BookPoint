@@ -53,6 +53,7 @@ const Register = () => {
 
       const res = await fetch(API, {
         method: 'POST',
+        headers: { Accept: 'application/json' },
         body: formData,
       });
 

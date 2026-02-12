@@ -15,6 +15,7 @@ import SellerDashboard from './pages/seller/SellerDashboard';
 import SellerProducts from './pages/seller/SellerProducts';
 import SellerOrders from './pages/seller/SellerOrders';
 import SellerReports from './pages/seller/SellerReports';
+import SellerList from './pages/seller/SellerList';
 import SellerHelp from './pages/seller/SellerHelp';
 
 import BuyerHome from './pages/buyer/BuyerHome';
@@ -130,6 +131,7 @@ const App: React.FC = () => {
           <Route path="reports" element={<SellerReports />} />
           <Route path="help" element={<SellerHelp />} />
           <Route path="profile" element={<Profile user={user} />} />
+          <Route path="list" element={<SellerList />} />
           <Route path="chat/:chatId?" element={<ChatPage />} />
         </Route>
 

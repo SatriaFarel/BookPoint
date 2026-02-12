@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { User, OrderStatus } from '../../types';
-import { Badge } from '../../components/Badge';
-import { Button } from '../../components/Button';
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { User, OrderStatus } from "../../types";
+import { Badge } from "../../components/Badge";
+import { Button } from "../../components/Button";
 
 interface BuyerTransactionsProps {
   user: User;
@@ -27,7 +27,7 @@ type Order = {
 };
 
 const BuyerTransactions: React.FC<BuyerTransactionsProps> = ({ user }) => {
-  const API = 'http://127.0.0.1:8000/api';
+  const API = "http://127.0.0.1:8000/api";
   const navigate = useNavigate();
 
   const [orders, setOrders] = useState<Order[]>([]);
@@ -37,31 +37,30 @@ const BuyerTransactions: React.FC<BuyerTransactionsProps> = ({ user }) => {
   const getBadgeVariant = (status: OrderStatus) => {
     switch (status) {
       case OrderStatus.APPROVED:
-        return 'success';
+        return "success";
       case OrderStatus.PENDING:
-        return 'warning';
+        return "warning";
       case OrderStatus.SHIPPED:
-        return 'info';
+        return "info";
       case OrderStatus.REJECTED:
-        return 'danger';
+        return "danger";
       case OrderStatus.DONE:
-        return 'primary';
+        return "primary";
       default:
-        return 'secondary';
+        return "secondary";
     }
   };
 
   /* ===== LOAD TRANSACTIONS ===== */
   const fetchOrders = async () => {
     try {
-      const res = await fetch(
-        `${API}/orders?customer_id=${user.id}`,
-        { headers: { 'Content-Type': 'application/json' } }
-      );
+      const res = await fetch(`${API}/orders?customer_id=${user.id}`, {
+        headers: { "Content-Type": "application/json" },
+      });
       const data = await res.json();
       setOrders(Array.isArray(data) ? data : []);
     } catch {
-      alert('Gagal mengambil transaksi');
+      alert("Gagal mengambil transaksi");
     } finally {
       setLoading(false);
     }
@@ -73,38 +72,57 @@ const BuyerTransactions: React.FC<BuyerTransactionsProps> = ({ user }) => {
 
   /* ===== KONFIRMASI TERIMA ===== */
   const confirmReceived = async (orderId: number) => {
-    if (!confirm('Yakin pesanan sudah diterima?')) return;
+    if (!confirm("Yakin pesanan sudah diterima?")) return;
 
     try {
       const res = await fetch(`${API}/orders/${orderId}/confirm`, {
-        method: 'POST',
-        headers: { Accept: 'application/json' },
+        method: "POST",
+        headers: { Accept: "application/json" },
       });
 
       if (!res.ok) throw new Error();
       fetchOrders();
     } catch {
-      alert('Gagal konfirmasi pesanan');
+      alert("Gagal konfirmasi pesanan");
     }
   };
 
-  /* ===== START CHAT ===== */
   const startChat = async (sellerId: number) => {
+    if (!user.id || !sellerId) {
+      alert("User tidak valid");
+      return;
+    }
+
     try {
       const res = await fetch(`${API}/chats`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
         body: JSON.stringify({
           buyer_id: user.id,
           seller_id: sellerId,
         }),
       });
 
-      if (!res.ok) throw new Error();
-      const chat = await res.json();
-      navigate(`/buyer/chat/${chat.id}`);
+      const data = await res.json();
+
+      if (!res.ok) {
+        console.log(data);
+        alert(data.message || "Gagal memulai chat");
+        return;
+      }
+
+      // pastikan id ada
+      if (!data.id) {
+        alert("Chat tidak valid");
+        return;
+      }
+
+      navigate(`/buyer/chat/${data.id}`);
     } catch {
-      alert('Gagal memulai chat');
+      alert("Server error");
     }
   };
 
@@ -115,9 +133,13 @@ const BuyerTransactions: React.FC<BuyerTransactionsProps> = ({ user }) => {
       {/* NAVBAR */}
       <nav className="bg-white border-b sticky top-0 z-20 px-4 py-4">
         <div className="max-w-5xl mx-auto flex justify-between items-center">
-          <Link to="/buyer" className="text-xl font-bold">BookStore</Link>
+          <Link to="/buyer" className="text-xl font-bold">
+            BookStore
+          </Link>
           <div className="flex gap-6">
-            <Link to="/buyer" className="text-slate-500">Store</Link>
+            <Link to="/buyer" className="text-slate-500">
+              Store
+            </Link>
             <Link to="/buyer/transactions" className="text-blue-600 font-bold">
               History
             </Link>
@@ -134,7 +156,7 @@ const BuyerTransactions: React.FC<BuyerTransactionsProps> = ({ user }) => {
         )}
 
         <div className="space-y-4">
-          {orders.map(order => (
+          {orders.map((order) => (
             <div
               key={order.id}
               className="bg-white p-6 rounded-xl border space-y-4"
@@ -152,7 +174,7 @@ const BuyerTransactions: React.FC<BuyerTransactionsProps> = ({ user }) => {
                   </div>
 
                   <h3 className="font-bold">
-                    {order.items.map(i => i.name).join(', ')}
+                    {order.items.map((i) => i.name).join(", ")}
                   </h3>
 
                   <p className="text-xs text-slate-400">
@@ -173,12 +195,10 @@ const BuyerTransactions: React.FC<BuyerTransactionsProps> = ({ user }) => {
               {order.status === OrderStatus.SHIPPED && (
                 <div className="bg-blue-50 p-4 rounded-xl flex justify-between items-center">
                   <span className="text-sm text-blue-700">
-                    Pesanan sudah dikirim. Silakan konfirmasi jika sudah diterima.
+                    Pesanan sudah dikirim. Silakan konfirmasi jika sudah
+                    diterima.
                   </span>
-                  <Button
-                    size="sm"
-                    onClick={() => confirmReceived(order.id)}
-                  >
+                  <Button size="sm" onClick={() => confirmReceived(order.id)}>
                     Konfirmasi Terima
                   </Button>
                 </div>
@@ -190,11 +210,12 @@ const BuyerTransactions: React.FC<BuyerTransactionsProps> = ({ user }) => {
                     Pesanan ditolak. Silakan lakukan refund ke toko.
                   </p>
                   <p className="text-sm">
-                    <b>Alamat Toko:</b> {order.seller_address || 'Tidak tersedia'}
+                    <b>Alamat Toko:</b>{" "}
+                    {order.seller_address || "Tidak tersedia"}
                   </p>
                   <p className="text-sm">
-                    <b>Estimasi Refund:</b>{' '}
-                    {order.refund_duration || '3–5 hari kerja'}
+                    <b>Estimasi Refund:</b>{" "}
+                    {order.refund_duration || "3–5 hari kerja"}
                   </p>
                 </div>
               )}

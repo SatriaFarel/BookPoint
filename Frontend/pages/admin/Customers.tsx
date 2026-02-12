@@ -163,9 +163,9 @@ const CustomerPage = () => {
 
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-bold text-slate-800">Manajemen Customer</h2>
-        <Button size="sm" onClick={openCreate}>
+        {/* <Button size="sm" onClick={openCreate}>
           + Tambah Customer
-        </Button>
+        </Button> */}
       </div>
 
       {loading ? (

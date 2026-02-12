@@ -325,6 +325,28 @@ const SellerOrders: React.FC = () => {
         </table>
       </div>
 
+      {/* ================= PREVIEW BUKTI MODAL ================= */}
+      {previewProof && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-4 max-w-lg w-full relative">
+            <button
+              onClick={() => setPreviewProof(null)}
+              className="absolute top-2 right-3 text-red-500 font-bold"
+            >
+              ✕
+            </button>
+
+            <h2 className="text-lg font-bold mb-4">Bukti Pembayaran</h2>
+
+            <img
+              src={previewProof}
+              alt="Bukti Pembayaran"
+              className="w-full rounded-lg border"
+            />
+          </div>
+        </div>
+      )}
+
       {/* Pagination */}
       <div className="flex justify-end items-center gap-3">
         <Button
