@@ -259,7 +259,15 @@ class SellerController extends Controller
     // DELETE SELLER
     public function destroy($id)
     {
-        User::where('role_id', 2)->findOrFail($id)->delete();
+        $seller = User::where('role_id', 2)->findOrFail($id);
+
+        if ($seller->is_online == 1) {
+            return response()->json([
+                'message' => 'Seller sedang online'
+            ], 422);
+        }
+
+        $seller->delete();
 
         return response()->json(['success' => true]);
     }

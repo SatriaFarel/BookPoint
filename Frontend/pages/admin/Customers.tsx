@@ -251,7 +251,6 @@ const CustomerPage = () => {
                 <input
                   className="w-full rounded-xl border px-4 py-2 text-sm"
                   value={nik}
-                  disabled={!!editId}
                   onChange={e => setNik(e.target.value)}
                 />
               </div>

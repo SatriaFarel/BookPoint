@@ -94,9 +94,15 @@ public function update(Request $request, $id)
     // DELETE CUSTOMER
     public function destroy($id)
     {
-       $customer = User::where('role_id', 3)->findOrFail($id);
+        $customer = User::where('role_id', 3)->findOrFail($id);
 
-         // foto opsional
+        if ($customer->is_online == 1) {
+            return response()->json([
+                'message' => 'Customer sedang online'
+            ], 422);
+        }
+
+        // foto opsional
         if ($customer->foto && Storage::disk('public')->exists($customer->foto)) {
             Storage::disk('public')->delete($customer->foto);
         }

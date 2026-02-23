@@ -129,28 +129,26 @@ class ProductsController extends Controller
     // DELETE PRODUCT
     public function destroy($id)
     {
+        // Ambil produk (auto 404 kalau tidak ada)
         $product = Products::findOrFail($id);
 
-        if (! $product) {
-            return response()->json([
-                'message' => 'Produk tidak ditemukan'
-            ], 404);
-        }
+        // Cek stok
         if ($product->stock > 0) {
             return response()->json([
                 'message' => 'Produk masih memiliki stok, tidak dapat dihapus'
-            ], 400);
+            ], 422);
         }
 
-        // hapus image kalau ada
+        // Hapus image jika ada
         if ($product->image && Storage::disk('public')->exists($product->image)) {
             Storage::disk('public')->delete($product->image);
         }
 
+        // Hapus produk
         $product->delete();
 
         return response()->json([
             'message' => 'Produk berhasil dihapus'
-        ]);
+        ], 200);
     }
 }

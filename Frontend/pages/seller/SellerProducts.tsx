@@ -1,9 +1,9 @@
-import React, { useState, useEffect, FormEvent } from 'react';
-import { Button } from '../../components/Button';
-import { Badge } from '../../components/Badge';
-import { Product } from '../../types';
+import React, { useState, useEffect, FormEvent } from "react";
+import { Button } from "../../components/Button";
+import { Badge } from "../../components/Badge";
+import { Product } from "../../types";
 
-const API = 'http://127.0.0.1:8000/api';
+const API = "http://127.0.0.1:8000/api";
 
 /* ================= HELPER ================= */
 const getFinalPrice = (price: number, discount?: number | null) => {
@@ -18,7 +18,7 @@ type Category = {
 
 /* ================= AMBIL SELLER ID ================= */
 const getSellerId = (): number | null => {
-  const raw = localStorage.getItem('user');
+  const raw = localStorage.getItem("user");
   if (!raw) return null;
 
   try {
@@ -35,11 +35,11 @@ const SellerProducts: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoryId, setCategoryId] = useState(0);
 
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
   const [alert, setAlert] = useState<{
-    type: 'success' | 'error';
+    type: "success" | "error";
     message: string;
   } | null>(null);
 
@@ -47,17 +47,17 @@ const SellerProducts: React.FC = () => {
   const [editId, setEditId] = useState<number | null>(null);
 
   // FORM
-  const [name, setName] = useState('');
+  const [name, setName] = useState("");
   const [price, setPrice] = useState(0);
   const [stock, setStock] = useState(0);
   const [discount, setDiscount] = useState(0);
-  const [description, setDescription] = useState('');
+  const [description, setDescription] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [detailProduct, setDetailProduct] = useState<Product | null>(null);
-  const [preview, setPreview] = useState('');
+  const [preview, setPreview] = useState("");
 
   /* ================= ALERT ================= */
-  const showAlert = (type: 'success' | 'error', message: string) => {
+  const showAlert = (type: "success" | "error", message: string) => {
     setAlert({ type, message });
     setTimeout(() => setAlert(null), 4000);
   };
@@ -66,7 +66,7 @@ const SellerProducts: React.FC = () => {
   const fetchProducts = async () => {
     const sellerId = getSellerId();
     if (!sellerId) {
-      showAlert('error', 'User belum login');
+      showAlert("error", "User belum login");
       setLoading(false);
       return;
     }
@@ -76,12 +76,11 @@ const SellerProducts: React.FC = () => {
       const data = await res.json();
       setProducts(Array.isArray(data) ? data : []);
     } catch {
-      showAlert('error', 'Gagal mengambil produk');
+      showAlert("error", "Gagal mengambil produk");
     } finally {
       setLoading(false);
     }
   };
-
 
   const fetchCategories = async () => {
     try {
@@ -90,7 +89,7 @@ const SellerProducts: React.FC = () => {
       setCategories(Array.isArray(data) ? data : []);
     } catch {
       setCategories([]);
-      showAlert('error', 'Gagal mengambil kategori');
+      showAlert("error", "Gagal mengambil kategori");
     }
   };
 
@@ -102,14 +101,14 @@ const SellerProducts: React.FC = () => {
   /* ================= FORM ================= */
   const resetForm = () => {
     setEditId(null);
-    setName('');
+    setName("");
     setCategoryId(0);
     setPrice(0);
     setStock(0);
     setDiscount(0);
-    setDescription('');
+    setDescription("");
     setImage(null);
-    setPreview('');
+    setPreview("");
   };
 
   const openCreate = () => {
@@ -124,8 +123,8 @@ const SellerProducts: React.FC = () => {
     setPrice(p.price);
     setStock(p.stock);
     setDiscount(p.discount_percent || 0);
-    setDescription(p.description || '');
-    setPreview(p.image ? `http://127.0.0.1:8000/storage/${p.image}` : '');
+    setDescription(p.description || "");
+    setPreview(p.image ? `http://127.0.0.1:8000/storage/${p.image}` : "");
     setImage(null);
     setShowForm(true);
   };
@@ -141,73 +140,80 @@ const SellerProducts: React.FC = () => {
 
     const sellerId = getSellerId();
     if (!sellerId) {
-      showAlert('error', 'User belum login');
+      showAlert("error", "User belum login");
       return;
     }
 
     if (!name.trim()) {
-      showAlert('error', 'Nama produk wajib diisi');
+      showAlert("error", "Nama produk wajib diisi");
       return;
     }
 
     if (categoryId === 0) {
-      showAlert('error', 'Kategori wajib dipilih');
+      showAlert("error", "Kategori wajib dipilih");
       return;
     }
 
     const formData = new FormData();
-    formData.append('seller_id', String(sellerId));
-    formData.append('name', name);
-    formData.append('category_id', String(categoryId));
-    formData.append('price', String(price));
-    formData.append('stock', String(stock));
-    formData.append(
-      'discount_percent',
-      discount > 0 ? String(discount) : ''
-    );
-    formData.append('description', description);
+    formData.append("seller_id", String(sellerId));
+    formData.append("name", name);
+    formData.append("category_id", String(categoryId));
+    formData.append("price", String(price));
+    formData.append("stock", String(stock));
+    formData.append("discount_percent", discount > 0 ? String(discount) : "");
+    formData.append("description", description);
 
-    if (image) formData.append('image', image);
+    if (image) formData.append("image", image);
 
     try {
-      if (editId) formData.append('_method', 'PUT');
+      if (editId) formData.append("_method", "PUT");
 
       const res = await fetch(
         editId ? `${API}/products/${editId}` : `${API}/products`,
         {
-          method: 'POST',
-          headers: { Accept: 'application/json' },
+          method: "POST",
+          headers: { Accept: "application/json" },
           body: formData,
-        }
+        },
       );
 
       if (!res.ok) {
         const err = await res.json();
-        showAlert('error', err.message || 'Gagal menyimpan produk');
+        showAlert("error", err.message || "Gagal menyimpan produk");
         return;
       }
 
       showAlert(
-        'success',
-        editId ? 'Produk berhasil diperbarui' : 'Produk berhasil ditambahkan'
+        "success",
+        editId ? "Produk berhasil diperbarui" : "Produk berhasil ditambahkan",
       );
       closeForm();
       fetchProducts();
     } catch {
-      showAlert('error', 'Server bermasalah');
+      showAlert("error", "Server bermasalah");
     }
   };
 
   /* ================= DELETE ================= */
   const handleDelete = async (id: number) => {
-    if (!confirm('Hapus produk ini?')) return;
+    if (!confirm("Hapus produk ini?")) return;
 
     try {
-      await fetch(`${API}/products/${id}`, { method: 'DELETE' });
-      showAlert('success', 'Produk berhasil dihapus');
+      const res = await fetch(`${API}/products/${id}`, {
+        method: "DELETE",
+        headers: { Accept: "application/json" },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Gagal menghapus produk");
+      }
+
+      showAlert("success", data.message);
       fetchProducts();
-    } catch {
-      showAlert('error', 'Gagal menghapus produk');
+    } catch (err: any) {
+      showAlert("error", err.message);
     }
   };
 
@@ -215,12 +221,11 @@ const SellerProducts: React.FC = () => {
 
   return (
     <div className="space-y-6">
-
       {alert && (
         <div
           className={`fixed top-20 right-5 z-50 px-4 py-3 rounded-xl shadow-lg
           text-white animate-in slide-in-from-top duration-300
-          ${alert.type === 'success' ? 'bg-emerald-500' : 'bg-red-500'}`}
+          ${alert.type === "success" ? "bg-emerald-500" : "bg-red-500"}`}
         >
           {alert.message}
         </div>
@@ -238,15 +243,15 @@ const SellerProducts: React.FC = () => {
       <input
         placeholder="Cari produk..."
         value={search}
-        onChange={e => setSearch(e.target.value)}
+        onChange={(e) => setSearch(e.target.value)}
         className="w-full md:w-1/3 px-4 py-2 border rounded-lg text-sm"
       />
 
       {/* CARD LIST */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {products
-          .filter(p => p.name.toLowerCase().includes(search.toLowerCase()))
-          .map(p => (
+          .filter((p) => p.name.toLowerCase().includes(search.toLowerCase()))
+          .map((p) => (
             <div
               key={p.id}
               onClick={() => setDetailProduct(p)}
@@ -256,12 +261,18 @@ const SellerProducts: React.FC = () => {
               {/* IMAGE + DISCOUNT */}
               <div className="relative">
                 <img
-                  src={p.image ? `http://127.0.0.1:8000/storage/${p.image}` : '/images/placeholder.png'}
+                  src={
+                    p.image
+                      ? `http://127.0.0.1:8000/storage/${p.image}`
+                      : "/images/placeholder.png"
+                  }
                   className="w-full h-48 object-cover"
                 />
                 {p.discount_percent && p.discount_percent > 0 && (
-                  <span className="absolute top-2 left-2 bg-red-500 text-white
-                                   text-xs font-bold px-2 py-1 rounded-lg">
+                  <span
+                    className="absolute top-2 left-2 bg-red-500 text-white
+                                   text-xs font-bold px-2 py-1 rounded-lg"
+                  >
                     -{p.discount_percent}%
                   </span>
                 )}
@@ -278,23 +289,33 @@ const SellerProducts: React.FC = () => {
                       </p>
                     )}
                     <p className="font-bold text-red-600">
-                      Rp {getFinalPrice(p.price, p.discount_percent).toLocaleString()}
+                      Rp{" "}
+                      {getFinalPrice(
+                        p.price,
+                        p.discount_percent,
+                      ).toLocaleString()}
                     </p>
                   </div>
-                  <Badge variant={p.stock > 0 ? 'success' : 'danger'}>
-                    {p.stock > 0 ? 'Tersedia' : 'Habis'}
+                  <Badge variant={p.stock > 0 ? "success" : "danger"}>
+                    {p.stock > 0 ? "Tersedia" : "Habis"}
                   </Badge>
                 </div>
 
                 <div className="flex gap-3">
                   <button
-                    onClick={e => { e.stopPropagation(); openEdit(p); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openEdit(p);
+                    }}
                     className="text-blue-600 text-sm"
                   >
                     Edit
                   </button>
                   <button
-                    onClick={e => { e.stopPropagation(); handleDelete(p.id); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(p.id);
+                    }}
                     className="text-red-600 text-sm"
                   >
                     Hapus
@@ -312,7 +333,7 @@ const SellerProducts: React.FC = () => {
           onClick={() => setDetailProduct(null)}
         >
           <div
-            onClick={e => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
             className="bg-white rounded-xl w-full max-w-md p-6 space-y-4"
           >
             <img
@@ -322,25 +343,27 @@ const SellerProducts: React.FC = () => {
 
             <h3 className="text-xl font-bold">{detailProduct.name}</h3>
             <p className="text-sm text-slate-500">
-              {detailProduct.description || '-'}
+              {detailProduct.description || "-"}
             </p>
 
             <div className="flex justify-between items-center">
               <div>
-                {detailProduct.discount_percent && detailProduct.discount_percent > 0 && (
-                  <p className="text-sm line-through text-slate-400">
-                    Rp {detailProduct.price.toLocaleString()}
-                  </p>
-                )}
+                {detailProduct.discount_percent &&
+                  detailProduct.discount_percent > 0 && (
+                    <p className="text-sm line-through text-slate-400">
+                      Rp {detailProduct.price.toLocaleString()}
+                    </p>
+                  )}
                 <p className="font-bold text-lg text-red-600">
-                  Rp {getFinalPrice(
+                  Rp{" "}
+                  {getFinalPrice(
                     detailProduct.price,
-                    detailProduct.discount_percent
+                    detailProduct.discount_percent,
                   ).toLocaleString()}
                 </p>
               </div>
 
-              <Badge variant={detailProduct.stock > 0 ? 'success' : 'danger'}>
+              <Badge variant={detailProduct.stock > 0 ? "success" : "danger"}>
                 Stok: {detailProduct.stock}
               </Badge>
             </div>
@@ -375,12 +398,12 @@ const SellerProducts: React.FC = () => {
         >
           <form
             onSubmit={handleSubmit}
-            onClick={e => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
             className="bg-white p-6 rounded-xl w-full max-w-md
                  max-h-[90vh] overflow-y-auto space-y-4"
           >
             <h3 className="font-bold text-lg">
-              {editId ? 'Edit Produk' : 'Tambah Produk'}
+              {editId ? "Edit Produk" : "Tambah Produk"}
             </h3>
 
             {/* NAMA PRODUK */}
@@ -390,7 +413,7 @@ const SellerProducts: React.FC = () => {
               </label>
               <input
                 value={name}
-                onChange={e => setName(e.target.value)}
+                onChange={(e) => setName(e.target.value)}
                 placeholder="Masukkan nama produk"
                 className="w-full px-3 py-2 border rounded-lg"
               />
@@ -403,11 +426,11 @@ const SellerProducts: React.FC = () => {
               </label>
               <select
                 value={categoryId}
-                onChange={e => setCategoryId(Number(e.target.value))}
+                onChange={(e) => setCategoryId(Number(e.target.value))}
                 className="w-full px-3 py-2 border rounded-lg"
               >
                 <option value={0}>-- Pilih kategori --</option>
-                {categories.map(cat => (
+                {categories.map((cat) => (
                   <option key={cat.id} value={cat.id}>
                     {cat.name}
                   </option>
@@ -423,7 +446,7 @@ const SellerProducts: React.FC = () => {
               <input
                 type="number"
                 value={price}
-                onChange={e => setPrice(Number(e.target.value) || 0)}
+                onChange={(e) => setPrice(Number(e.target.value) || 0)}
                 placeholder="Harga produk"
                 className="w-full px-3 py-2 border rounded-lg"
               />
@@ -431,13 +454,11 @@ const SellerProducts: React.FC = () => {
 
             {/* STOK */}
             <div className="space-y-1">
-              <label className="text-sm font-medium text-slate-700">
-                Stok
-              </label>
+              <label className="text-sm font-medium text-slate-700">Stok</label>
               <input
                 type="number"
                 value={stock}
-                onChange={e => setStock(Number(e.target.value) || 0)}
+                onChange={(e) => setStock(Number(e.target.value) || 0)}
                 placeholder="Jumlah stok"
                 className="w-full px-3 py-2 border rounded-lg"
               />
@@ -451,7 +472,7 @@ const SellerProducts: React.FC = () => {
               <input
                 type="number"
                 value={discount}
-                onChange={e =>
+                onChange={(e) =>
                   setDiscount(Math.min(100, Number(e.target.value) || 0))
                 }
                 placeholder="0 - 100"
@@ -466,7 +487,7 @@ const SellerProducts: React.FC = () => {
               </label>
               <textarea
                 value={description}
-                onChange={e => setDescription(e.target.value)}
+                onChange={(e) => setDescription(e.target.value)}
                 placeholder="Deskripsi singkat produk"
                 className="w-full px-3 py-2 border rounded-lg"
                 rows={3}
@@ -481,7 +502,7 @@ const SellerProducts: React.FC = () => {
               <input
                 type="file"
                 accept="image/*"
-                onChange={e => {
+                onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (!file) return;
                   setImage(file);
@@ -507,7 +528,6 @@ const SellerProducts: React.FC = () => {
           </form>
         </div>
       )}
-
     </div>
   );
 };

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Categories;
+use App\Models\Products;
 use Illuminate\Http\Request;
 
 class CategoriesController extends Controller
@@ -57,6 +58,16 @@ class CategoriesController extends Controller
     public function destroy($id)
     {
         $category = Categories::findOrFail($id);
+
+        // Cek apakah ada produk yang pakai category ini
+        $used = Products::where('category_id', $id)->exists();
+
+        if ($used) {
+            return response()->json([
+                'message' => 'Category masih digunakan oleh produk'
+            ], 422);
+        }
+
         $category->delete();
 
         return response()->json(['success' => true]);

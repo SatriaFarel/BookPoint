@@ -347,6 +347,79 @@ const SellerOrders: React.FC = () => {
         </div>
       )}
 
+      {/* ================= RESI MODAL ================= */}
+      {showResiModal && selectedOrder && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md relative shadow-xl">
+            <button
+              onClick={() => setShowResiModal(false)}
+              className="absolute top-3 right-4 text-red-500 font-bold"
+            >
+              ✕
+            </button>
+
+            <h2 className="text-lg font-bold mb-4">Input Resi Pengiriman</h2>
+
+            <div className="space-y-4">
+              {/* Pilih Ekspedisi */}
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">
+                  Ekspedisi
+                </label>
+                <select
+                  className="w-full border rounded-xl px-3 py-2 text-sm"
+                  value={selectedExpedition}
+                  onChange={(e) => {
+                    const code = e.target.value;
+                    setSelectedExpedition(code);
+                    setResi(generateResi(code)); // auto generate resi
+                  }}
+                >
+                  <option value="">Pilih ekspedisi</option>
+                  {expeditions.map((exp) => (
+                    <option key={exp.code} value={exp.code}>
+                      {exp.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Nomor Resi */}
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">
+                  Nomor Resi
+                </label>
+                <input
+                  type="text"
+                  className="w-full border rounded-xl px-3 py-2 text-sm"
+                  value={resi}
+                  onChange={(e) => setResi(e.target.value)}
+                />
+              </div>
+
+              {/* Action */}
+              <div className="flex justify-end gap-3 pt-3">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowResiModal(false)}
+                >
+                  Batal
+                </Button>
+
+                <Button
+                  size="sm"
+                  onClick={saveResi}
+                  disabled={!selectedExpedition || !resi}
+                >
+                  Simpan Resi
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Pagination */}
       <div className="flex justify-end items-center gap-3">
         <Button
