@@ -147,18 +147,24 @@ const SellerPage = () => {
 
   const handleDelete = async (id: number) => {
     if (!confirm("Hapus seller ini?")) return;
+
     try {
-      await fetch(`${API}/${id}`, {
+      const response = await fetch(`${API}/${id}`, {
         method: "DELETE",
         headers: { Accept: "application/json" },
       });
+
+      // cek apakah status 2xx
+      if (!response.ok) {
+        throw new Error("Gagal hapus data");
+      }
+
       showAlert("success", "Seller berhasil dihapus");
       fetchSeller();
-    } catch {
+    } catch (error) {
       showAlert("error", "Gagal menghapus seller");
     }
   };
-
   return (
     <div className="space-y-6">
       {alert && (
@@ -274,19 +280,17 @@ const SellerPage = () => {
               </div>
             ))}
 
-           
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-xl border px-4 py-2 text-sm"
-                />
-              </div>
-            
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">
+                Password
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full rounded-xl border px-4 py-2 text-sm"
+              />
+            </div>
 
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">
@@ -320,7 +324,10 @@ const SellerPage = () => {
                   className="w-20 h-20 rounded-xl object-cover mb-2"
                 />
               )}
-              <input type="file" onChange={(e) => setFoto(e.target.files?.[0] || null)} />
+              <input
+                type="file"
+                onChange={(e) => setFoto(e.target.files?.[0] || null)}
+              />
             </div>
 
             <div>
@@ -333,7 +340,10 @@ const SellerPage = () => {
                   className="w-20 h-20 rounded-xl object-cover mb-2"
                 />
               )}
-              <input type="file" onChange={(e) => setQris(e.target.files?.[0] || null)} />
+              <input
+                type="file"
+                onChange={(e) => setQris(e.target.files?.[0] || null)}
+              />
             </div>
 
             <div className="flex justify-end gap-3 pt-4">

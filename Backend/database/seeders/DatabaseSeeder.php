@@ -50,12 +50,42 @@ class DatabaseSeeder extends Seeder
                 'updated_at' => now(),
             ],
             [
+                'nik' => '2222222222222223',
+                'name' => 'Seller Buku Dua',
+                'email' => 'nurhayatulfadila@gmail.com',
+                'password' => Hash::make('password'),
+                'role_id' => 2,
+                'alamat' => 'Bandung',
+                'foto' => 'profile/pfp.jpeg',
+                'no_rekening' => '1234567890',
+                'qris' => null,
+                'is_active' => 1,
+                'is_online' => 0,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
                 'nik' => '3333333333333333',
                 'name' => 'Customer Satu',
                 'email' => 'customer@gmail.com',
                 'password' => Hash::make('password'),
                 'role_id' => 3,
                 'alamat' => 'Surabaya',
+                'foto' => 'profile/pfp.jpeg',
+                'no_rekening' => null,
+                'qris' => null,
+                'is_active' => 1,
+                'is_online' => 0,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'nik' => '4444444444444444',
+                'name' => 'Customer Dua',
+                'email' => 'satriafarel40@gmail.com',
+                'password' => Hash::make('password'),
+                'role_id' => 3,
+                'alamat' => 'Semarang',
                 'foto' => 'profile/pfp.jpeg',
                 'no_rekening' => null,
                 'qris' => null,
@@ -92,7 +122,7 @@ class DatabaseSeeder extends Seeder
         /* ================= PRODUCTS ================= */
         DB::table('products')->insert([
             [
-                'seller_id'   => 2, // ID user seller
+                'seller_id'   => 2,
                 'category_id' => 1,
                 'image'       => 'products/placeholder.webp',
                 'name'        => 'Buku Laravel Dasar',
@@ -104,7 +134,7 @@ class DatabaseSeeder extends Seeder
                 'updated_at'  => now(),
             ],
             [
-                'seller_id'   => 2,
+                'seller_id'   => 3,
                 'category_id' => 1,
                 'image'       => 'products/placeholder.webp',
                 'name'        => 'Buku React Modern',
@@ -114,6 +144,34 @@ class DatabaseSeeder extends Seeder
                 'description' => 'Panduan React modern dengan hooks',
                 'created_at'  => now(),
                 'updated_at'  => now(),
+            ],
+        ]);
+
+        /* ================= ORDERS ================= */
+        DB::table('orders')->insert([
+            [
+                'seller_id'        => 2,
+                'customer_id'      => 4,
+                'total_price'      => 67500,
+                'status'           => 'diperiksa',
+                'expedition'       => null,
+                'resi'             => null,
+                'payment_method'   => 'transfer',
+                'bukti_pembayaran' => 'payments/sample.jpg',
+                'created_at'       => now(),
+                'updated_at'       => now(),
+            ],
+        ]);
+
+        /* ================= ORDER ITEMS ================= */
+        DB::table('order_items')->insert([
+            [
+                'order_id'   => 1, // pastikan ID order sesuai
+                'product_id' => 1,
+                'quantity'   => 1,
+                'price'      => 67500,
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
         ]);
     }
