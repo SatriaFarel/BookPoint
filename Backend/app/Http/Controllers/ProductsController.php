@@ -16,7 +16,9 @@ class ProductsController extends Controller
         $sellerId = $request->seller_id;
 
         if (!$sellerId) {
-            return response()->json(Products::all());
+            return response()->json(
+                Products::where('stock', '>', 0)->get()
+            );
         } else {
             return response()->json(Products::where('seller_id', $sellerId)->get());
         }
