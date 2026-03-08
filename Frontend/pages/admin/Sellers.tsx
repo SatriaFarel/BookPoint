@@ -19,6 +19,8 @@ const SellerPage = () => {
     setTimeout(() => setAlert(null), 3000);
   };
 
+  const [search, setSearch] = useState("");
+
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
 
@@ -63,6 +65,12 @@ const SellerPage = () => {
       showAlert("error", "Gagal mengambil detail seller");
     }
   };
+
+  const filteredSellers = sellers.filter((s) =>
+    s.name.toLowerCase().includes(search.toLowerCase()) ||
+    s.email.toLowerCase().includes(search.toLowerCase()) ||
+    s.nik.toLowerCase().includes(search.toLowerCase())
+  );
 
   useEffect(() => {
     fetchSeller();
@@ -183,11 +191,22 @@ const SellerPage = () => {
         </Button>
       </div>
 
+      <div className="flex justify-start">
+        <input
+          type="text"
+          placeholder="Cari customer..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="border rounded-xl px-4 py-2 text-sm w-60"
+        />
+      </div>
+
       {loading ? (
         <p>Loading...</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {sellers.map((s) => (
+
+          {filteredSellers.map((s) => (
             <div
               key={s.id}
               onClick={() => fetchSellerDetail(s.id)}
@@ -326,7 +345,12 @@ const SellerPage = () => {
               )}
               <input
                 type="file"
-                onChange={(e) => setFoto(e.target.files?.[0] || null)}
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] || null;
+                  setFoto(file);
+                  if (file) setPreviewFoto(URL.createObjectURL(file));
+                }}
               />
             </div>
 

@@ -14,6 +14,8 @@ const CustomerPage = () => {
     message: string;
   } | null>(null);
 
+  const [search, setSearch] = useState("");
+
   const showAlert = (type: "success" | "error", message: string) => {
     setAlert({ type, message });
     setTimeout(() => setAlert(null), 10000);
@@ -46,6 +48,12 @@ const CustomerPage = () => {
       setLoading(false);
     }
   };
+
+  const filteredCustomers = customers.filter((c) =>
+    c.name.toLowerCase().includes(search.toLowerCase()) ||
+    c.email.toLowerCase().includes(search.toLowerCase()) ||
+    c.nik.toLowerCase().includes(search.toLowerCase())
+  );
 
   useEffect(() => {
     fetchCustomers();
@@ -165,13 +173,21 @@ const CustomerPage = () => {
         {/* <Button size="sm" onClick={openCreate}>
           + Tambah Customer
         </Button> */}
+
+        <input
+          type="text"
+          placeholder="Cari customer..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="border rounded-xl px-4 py-2 text-sm w-60"
+        />
       </div>
 
       {loading ? (
         <p>Loading...</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {customers.map((c) => (
+          {filteredCustomers.map((c) => (
             <div
               key={c.id}
               className="group bg-white border border-slate-200 rounded-2xl p-5

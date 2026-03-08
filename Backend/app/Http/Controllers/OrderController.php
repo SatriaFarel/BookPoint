@@ -170,8 +170,6 @@ class OrderController extends Controller
         }
     }
 
-
-
     // UPDATE ORDER
     public function update(Request $request, $id)
     {
@@ -273,6 +271,14 @@ class OrderController extends Controller
             'updated_at' => now(),
         ]);
 
+        // Mengembalikan stok produk
+        foreach ($order->items as $item) {
+            $product = Products::find($item->product_id);
+            if ($product) {
+                $product->increment('stock', $item->quantity);
+            }
+        }
+        
         return response()->json([
             'message' => 'Pesanan ditolak. Refund maksimal 1 bulan.'
         ]);

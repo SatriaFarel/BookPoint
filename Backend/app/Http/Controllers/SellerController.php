@@ -69,29 +69,33 @@ class SellerController extends Controller
 
     public function sales($sellerId)
     {
-        // hanya order yang disetujui
         $orders = Order::with('items')
             ->where('seller_id', $sellerId)
             ->whereIn('status', ['disetujui', 'dikirim', 'selesai'])
             ->get();
 
-        /* ================= SUMMARY PER BULAN ================= */
+        /* ================= CHART DATA ================= */
+
         $chart = $orders
             ->groupBy(fn($o) => Carbon::parse($o->created_at)->format('Y-m'))
             ->map(function ($group, $month) {
+
                 return [
-                    'month'  => Carbon::parse($month)->translatedFormat('M Y'),
+                    'month'  => $month, // contoh: 2026-01
+                    'label'  => Carbon::parse($month)->translatedFormat('M Y'), // Jan 2026
                     'margin' => $group->sum('total_price'),
-                    'profit' => $group->sum('total_price') * 0.9, // contoh bersih
+                    'profit' => $group->sum('total_price') * 0.9,
                 ];
             })
             ->values();
 
-        /* ================= TABLE DETAIL ================= */
+        /* ================= TABLE DATA ================= */
+
         $table = $orders->map(function ($order) {
+
             return [
                 'id'     => $order->id,
-                'date'   => $order->created_at->format('d M Y'),
+                'date'   => $order->created_at->format('Y-m-d'),
                 'total'  => $order->total_price,
                 'status' => $order->status,
             ];

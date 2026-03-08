@@ -24,6 +24,13 @@ const getSellerId = (): number | null => {
 const SellerList: React.FC = () => {
   const [sellers, setSellers] = useState<Seller[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+
+  const filteredSellers = sellers.filter((s) =>
+    s.name.toLowerCase().includes(search.toLowerCase()) ||
+    s.email.toLowerCase().includes(search.toLowerCase()) ||
+    s.nik.toLowerCase().includes(search.toLowerCase())
+  );
 
   const myId = getSellerId();
 
@@ -51,8 +58,18 @@ const SellerList: React.FC = () => {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Daftar Seller</h1>
 
+      <div className="flex justify-start mb-4">
+        <input
+          type="text"
+          placeholder="Cari seller..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="border rounded-xl px-4 py-2 text-sm w-60"
+        />
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {sellers.map(seller => (
+        {filteredSellers.map(seller => (
           <div
             key={seller.id}
             className="bg-white rounded-xl border overflow-hidden
