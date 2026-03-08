@@ -232,30 +232,37 @@ class SellerController extends Controller
             'qris'  => 'nullable|image|max:2048',
         ]);
 
+        // update basic data
+        $seller->name   = $request->name;
+        $seller->email  = $request->email;
+        $seller->alamat = $request->alamat;
+
+        // password hanya jika diisi
+        if (!empty($request->password)) {
+            $seller->password = Hash::make($request->password);
+        }
+
         // foto opsional
         if ($request->hasFile('foto')) {
+
             if ($seller->foto) {
                 Storage::disk('public')->delete($seller->foto);
             }
 
-            $seller->foto = $request->file('foto')
-                ->store('profile', 'public');
+            $seller->foto = $request->file('foto')->store('profile', 'public');
         }
+
         // qris opsional
         if ($request->hasFile('qris')) {
+
             if ($seller->qris) {
                 Storage::disk('public')->delete($seller->qris);
             }
-            $seller->qris = $request->file('qris')
-                ->store('qris', 'public');
+
+            $seller->qris = $request->file('qris')->store('qris', 'public');
         }
 
-        $seller->update([
-            'name'   => $request->name,
-            'email'  => $request->email,
-            'alamat' => $request->alamat,
-            'password' => $request->password ? Hash::make($request->password) : $seller->password,
-        ]);
+        $seller->save();
 
         return response()->json($seller);
     }

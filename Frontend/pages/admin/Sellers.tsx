@@ -66,10 +66,11 @@ const SellerPage = () => {
     }
   };
 
-  const filteredSellers = sellers.filter((s) =>
-    s.name.toLowerCase().includes(search.toLowerCase()) ||
-    s.email.toLowerCase().includes(search.toLowerCase()) ||
-    s.nik.toLowerCase().includes(search.toLowerCase())
+  const filteredSellers = sellers.filter(
+    (s) =>
+      s.name.toLowerCase().includes(search.toLowerCase()) ||
+      s.email.toLowerCase().includes(search.toLowerCase()) ||
+      s.nik.toLowerCase().includes(search.toLowerCase()),
   );
 
   useEffect(() => {
@@ -89,7 +90,11 @@ const SellerPage = () => {
     formData.append("alamat", alamat);
     formData.append("no_rekening", no_rekening);
 
-    formData.append("password", password);
+    // hanya kirim password kalau diisi
+    if (password) {
+      formData.append("password", password);
+    }
+
     if (foto) formData.append("foto", foto);
     if (qris) formData.append("qris", qris);
     if (editId) formData.append("_method", "PUT");
@@ -108,13 +113,14 @@ const SellerPage = () => {
         "success",
         editId ? "Seller berhasil diupdate" : "Seller berhasil ditambahkan",
       );
+
       closeForm();
       fetchSeller();
     } catch (err: any) {
       showAlert("error", err.message);
     }
   };
-
+  
   /* ================= ACTION ================= */
   const openCreate = () => {
     resetForm();
@@ -127,10 +133,16 @@ const SellerPage = () => {
     setName(s.name);
     setEmail(s.email);
     setAlamat(s.alamat);
-    setPassword(s.password);
+
+    // password tidak diambil dari database
+    setPassword("");
+
     setNoRekening(s.no_rekening || "");
+
     setPreviewFoto(s.foto ? `http://127.0.0.1:8000/storage/${s.foto}` : null);
+
     setPreviewQris(s.qris ? `http://127.0.0.1:8000/storage/${s.qris}` : null);
+
     setShowForm(true);
   };
 
@@ -205,7 +217,6 @@ const SellerPage = () => {
         <p>Loading...</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
           {filteredSellers.map((s) => (
             <div
               key={s.id}
